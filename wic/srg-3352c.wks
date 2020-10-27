@@ -1,0 +1,18 @@
+#
+# SRG-335x Debian Buster
+#
+# Copyright (c) LYD/AAEON, 2020
+#
+# Authors:
+#   KunYi <kunyi.chen@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
+part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/MLO" --no-table --align 128
+part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/u-boot.img" --no-table --align 384
+
+#part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active --extra-space 128M
+part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active
+
+bootloader --append "rootwait console=ttyS0,115200"

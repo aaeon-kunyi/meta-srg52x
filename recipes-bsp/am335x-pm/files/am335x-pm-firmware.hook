@@ -1,0 +1,43 @@
+# This package for AM335x Power Management firmware
+#
+# Copyright (C) KunYi, 2020
+#
+# SPDX-License-Identifier: MIT
+
+#!/bin/sh
+set -x
+PREREQ=""
+
+prereqs()
+{
+     echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+     prereqs
+     exit 0
+     ;;
+esac
+
+. /usr/share/initramfs-tools/scripts/functions
+. /usr/share/initramfs-tools/hook-functions
+
+if [ -d /lib/firmware/ ] ; then
+     unset check
+     check=$(ls /lib/firmware/ | grep am335x-pm-firmware.elf | head -n 1)
+     if [ ! "x${check}" = "x" ] ; then
+          mkdir -p $DESTDIR/lib/firmware/
+          if [ -f /lib/firmware/am335x-bone-scale-data.bin ]; then
+               cp -a /lib/firmware/am335x-bone-scale-data.bin ${DESTDIR}/lib/firmware
+          fi
+          if [ -f /lib/firmware/am335x-evm-scale-data.bin ]; then
+               cp -a /lib/firmware/am335x-evm-scale-data.bin ${DESTDIR}/lib/firmware
+          fi
+          if [ -f /lib/firmware/am335x-pm-firmware.elf ]; then
+               cp -a /lib/firmware/am335x-pm-firmware.elf ${DESTDIR}/lib/firmware
+          fi
+     fi
+fi
+
+exit 0

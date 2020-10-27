@@ -1,0 +1,79 @@
+#!/bin/sh
+#
+# Boot script generator for U-Boot
+#
+# Copyright (c) LYD/AAEON, 2020
+#
+# Authors:
+#   KunYi <kunyi.chen@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
+set -e
+
+if [ -f /etc/default/u-boot-script ]; then
+	. /etc/default/u-boot-script
+fi
+
+BOOT_CMD=$(mktemp)
+
+KERNEL_VERSION=$(linux-version list | linux-version sort --reverse | head -1)
+
+KERNEL_FILE="vmlinuz"
+BOOT="bootz"
+
+echo "${SCRIPT_PREPEND}" >> ${BOOT_CMD}
+
+echo "setenv bootargs ${KERNEL_ARGS} " >> ${BOOT_CMD}
+# >>> for ramdisk
+echo "setenv fdt_addr_r 0x8c000000 " >> ${BOOT_CMD}
+echo "setenv ramdisk_addr_r 0x8c080000 " >> ${BOOT_CMD}
+# <<<
+echo "setenv distro_bootpart 1" >> ${BOOT_CMD}
+echo "load \${devtype} \${devnum}:${ROOT_PARTITION} \${fdt_addr_r}" \
+     "/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
+
+echo "load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r}" \
+     "/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
+# >>> debugging
+echo "setenv bootfile ${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
+echo "setenv fdtfile ../usr/lib/linux-image-${KERNEL_VERSION}/am335x-srg3352c.dtb" >> ${BOOT_CMD}
+# <<< debugging
+
+case "${NO_INITRD}" in
+yes|1)
+	INITRD_ADDR="-"
+	;;
+*)
+	echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
+	     "\${ramdisk_addr_r} /boot/initrd.img-${KERNEL_VERSION}" \
+	     >> ${BOOT_CMD}
+	INITRD_ADDR="\${ramdisk_addr_r}:\${filesize}"
+	;;
+esac
+
+if [ -n "${OVERLAYS}" ]; then
+	echo "fdt addr \${fdt_addr_r}" >> ${BOOT_CMD}
+	# grant 1 MB to combined device tree
+	echo "fdt resize 0x100000" >> ${BOOT_CMD}
+	echo "setexpr overlay_addr_r \${fdt_addr_r} + 0x100000" >> ${BOOT_CMD}
+	for OVERLAY in ${OVERLAYS}; do
+		if ! echo $OVERLAY | grep -q "^/"; then
+			OVERLAY_PATH=/usr/lib/linux-image-${KERNEL_VERSION}/
+		fi
+		echo "load \${devtype} \${devnum}:${ROOT_PARTITION}" \
+		     "\${overlay_addr_r} ${OVERLAY_PATH}${OVERLAY}" \
+		     >> ${BOOT_CMD}
+		echo "fdt apply \${overlay_addr_r}" >> ${BOOT_CMD}
+	done
+fi
+
+# for fixup bootargs
+echo "run args_mmc" >> ${BOOT_CMD}
+
+echo "${BOOT} \${kernel_addr_r} ${INITRD_ADDR} \${fdt_addr_r}" >> ${BOOT_CMD}
+
+mkimage -T script -A invalid -C none -d ${BOOT_CMD} /boot/boot.scr > /dev/null
+
+rm ${BOOT_CMD}

@@ -1,0 +1,12 @@
+[Unit]
+Description=SRG-3352C WL18xx Bluetooth Service
+After=bluetooth.service
+
+[Service]
+ExecStart=/usr/bin/srg52c-bt-en
+Type=forking
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

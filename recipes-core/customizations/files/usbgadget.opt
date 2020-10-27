@@ -1,0 +1,1 @@
+# options g_multi file=/etc/srg52/srg52.img ro=1 removable=1 iSerialNumber=987654321 iManufacturer=AAEON iProduct=SRG3352

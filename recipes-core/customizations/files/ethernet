@@ -1,0 +1,17 @@
+#
+# SRG-335x Debian Buster
+#
+# Copyright (c) LYD/AAEON, 2020
+#
+# Authors:
+#  KunYi <kunyi.chen@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
+allow-hotplug eth0
+allow-hotplug eth1
+
+# used on SRG-3352x
+iface eth0 inet dhcp
+iface eth1 inet dhcp

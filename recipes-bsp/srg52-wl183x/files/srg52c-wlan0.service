@@ -1,0 +1,12 @@
+[Unit]
+Description=SRG-3352C WL18xx wlan0 Service
+After=local-fs.target
+
+[Service]
+ExecStart=/usr/bin/srg52c-wl18xx-wlan0
+Type=forking
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
