@@ -40,11 +40,8 @@ currently use Ubuntu 18.04.
     # clone this repository
     git clone https://github.com/aaeon-kunyi/meta-srg52x.git
     cd meta-srg52x
-    # use kas with docker
-    wget wget https://raw.githubusercontent.com/siemens/kas/2.2/kas-docker
-    chmod a+x kas-docker
     # build image
-    ./kas-docker --isar build kas-srg52.yml:kas/board/srg-3352c.yml
+    ./build_srg52.sh
 
 5. image will gerneration in ./build/tmp/deploy/images/srg-3352c
 
