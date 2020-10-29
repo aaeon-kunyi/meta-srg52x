@@ -7,37 +7,26 @@ The build system used for this is `Isar <https://github.com/ilbers/isar>`_, an i
 
 Developement Host
 -----------------
-currently use Ubuntu 18.04/x86_64(amd64).
+currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
 
 1. to install the follow packages ::
-
+    
+    sudo apt update
+    
     apt install \
-      binfmt-support \
-      build-essential \
-      debootstrap \
-      dosfstools \
-      dpkg-dev \
-      gettext-base \
+      apt-transport-https \
+      ca-certificates \
+      curl \
       git \
-      mtools \
-      parted \
-      python3 \
-      python3-pip \
-      python3-distutils \
-      quilt \
-      qemu \
-      qemu-user-static \
-      reprepro \
-      sudo
+      gnupg-agent \
+      software-properties-common
 
 
-2. to install docker.io, please reference `this article <https://docs.docker.com/engine/install/ubuntu>`_.
+2. to install docker.io, please reference `this article <https://docs.docker.com/engine/install/ubuntu>`_. and add your account into docker group. ::
 
-3. install kas setup tool ::
+    sudo usermod -aG docker <your account>
 
-    pip3 install kas
-
-4. build test image ::
+3. build test image ::
 
     # clone this repository
     git clone https://github.com/aaeon-kunyi/meta-srg52x.git
@@ -45,11 +34,11 @@ currently use Ubuntu 18.04/x86_64(amd64).
     # build image
     ./build_srg52.sh
 
-5. image will gerneration in ./build/tmp/deploy/images/srg-3352c
+4. image will gerneration in ./build/tmp/deploy/images/srg-3352c
 
     srg52-image-srg52-buster-srg-3352c.wic.img
 
-6. Booting from SD card ::
+5. Booting from SD card ::
 
     # Under Linux host, insert an unused SD card. Assuming the SD card takes device **/dev/sdX**, use dd to copy the image to it. For example:
 
