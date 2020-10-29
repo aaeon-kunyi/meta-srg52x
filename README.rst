@@ -13,7 +13,7 @@ currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
     
     sudo apt update
     
-    apt install \
+    sudo apt install \
       apt-transport-https \
       ca-certificates \
       curl \
