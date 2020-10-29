@@ -3,9 +3,11 @@ meta-srg52x
 
 the repository for produce latest Debian buster OS image for `AAEON SRG-3352x Gateway <https://www.aaeon.com/en/p/iot-gateway-node-systems-srg-3352c>`_.
 
+The build system used for this is `Isar <https://github.com/ilbers/isar>`_, an image generator that assembles Debian binaries or builds individual packages from scratch.
+
 Developement Host
 -----------------
-currently use Ubuntu 18.04.
+currently use Ubuntu 18.04/x86_64(amd64).
 
 1. to install the follow packages ::
 
@@ -59,6 +61,10 @@ Known issues:
 -------------
 * currently only support booting from SD card
 * WIFI/Bluetooth maybe failed when first time boot
+
+License:
+--------
+Unless otherwise stated in the respective file, files in this layer are provided under the MIT license, see COPYING file. Patches (files ending with .patch) are licensed according to their target project and file, typically GPLv2.
     
 Reference:
 ----------
