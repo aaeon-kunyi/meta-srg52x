@@ -22,9 +22,13 @@ currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
       software-properties-common
 
 
-2. to install docker.io, please reference `this article <https://docs.docker.com/engine/install/ubuntu>`_. and add your account into docker group. ::
+2. to install docker.io, please reference `this article <https://docs.docker.com/engine/install/ubuntu>`_. And to add your account into docker group and launch docker ::
 
     sudo usermod -aG docker <your account>
+    # reminds: you can reboot the host or 
+    # try the below commands for launch docker service
+    sudo systemctl enable docker
+    sudo systemctl start docker
 
 3. build test image ::
 
