@@ -72,3 +72,9 @@ Reference:
 * https://github.com/ilbers/isar
 * https://github.com/siemens/meta-iot2050
 * https://gitlab.com/cip-project/cip-core/isar-cip-core
+* `Bootloader base on u-boot 2019.01 from TI Linux RT SDK <https://git.ti.com/cgit/ti-u-boot/ti-u-boot/log/?h=ti-u-boot-2019.01&id=a280dd38e1d3dc7f9c6ceba54fc9830fe9a152a3>`_
+* kernel base on TI Linux RT SDK with Beaglebone patch
+    * `TI Processor SDK Linux RT AM335X, 06_03_00_106 <https://software-dl.ti.com/processor-sdk-linux-rt/esd/AM335X/06_03_00_106/index_FDS.html>`_
+    * `Beaglebone r52 patch <https://github.com/RobertCNelson/ti-linux-kernel-dev/releases/tag/4.19.94-ti-rt-r52>`_
+
+* https://github.com/RobertCNelson/boot-scripts
