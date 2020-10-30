@@ -182,14 +182,24 @@ partition_drive () {
 	sync
 	flush_cache
 
-	#128Mb reserved formatted boot partition
+	# DOS MBR use sector 0
+	# 8192 sector: 8192*512B, 4MB for bootloader/environments
+	# p1: 128MB reserved formatted boot partition
+	# p2: 2GB, root filesystem, * boot active
+	# p3: another for user data
+	#
+	# except the below configuration
+	# Device         Boot   Start      End  Sectors  Size Id Type
+	# /dev/mmcblk1p1         8192   270335   262144  128M 83 Linux
+	# /dev/mmcblk1p2 *     270336  4464639  4194304    2G 83 Linux
+	# /dev/mmcblk1p3      4464640 15269887 10805248  5.2G 83 Linux
+	#
 	LC_ALL=C sfdisk --force "${destination}" <<-__EOF__
-		1,128M,0x83,*
-		,,,-
+		8192,	128M, ,
+		270336,2048M, ,*
+		4464640,,,-
 	__EOF__
-
 	flush_cache
-	fdisk_toggle_boot
 	flush_cache
 	format_root
 }
