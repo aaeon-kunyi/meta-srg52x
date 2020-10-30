@@ -230,12 +230,12 @@ copy_rootfs () {
 	rsync -aAIX  /boot/* /tmp/rootfs/boot/ --exclude=boot.scr || write_failure
 	flush_cache
 
-	unset boot_uuid
-	boot_uuid=$(/sbin/blkid -c /dev/null -s UUID -o value ${destination}p2)
-	if [ "${boot_uuid}" ] ; then
-		boot_uuid="UUID=${boot_uuid}"
+	unset root_uuid
+	root_uuid=$(/sbin/blkid -c /dev/null -s UUID -o value ${destination}p2)
+	if [ "${root_uuid}" ] ; then
+		root_uuid="UUID=${root_uuid}"
 	else
-		boot_uuid="${source}p1"
+		root_uuid="${destination}p2"
 	fi
 
 	echo "Generating: /etc/fstab"
