@@ -25,17 +25,22 @@ BOOT="bootz"
 
 echo "${SCRIPT_PREPEND}" >> ${BOOT_CMD}
 
+# KERNEL_ARGS definition in /etc/default/u-boot-script
 echo "setenv bootargs ${KERNEL_ARGS} " >> ${BOOT_CMD}
+echo "setenv distro_bootpart 2" >> ${BOOT_CMD}
 # >>> for ramdisk
 echo "setenv fdt_addr_r 0x8c000000 " >> ${BOOT_CMD}
 echo "setenv ramdisk_addr_r 0x8c080000 " >> ${BOOT_CMD}
+echo "setenv fdtaddr 0x8c000000 " >> ${BOOT_CMD}
+echo "setenv rdaddr 0x8c080000 "
+echo "setenv bootpart 0:\${distro_bootpart} " >> ${BOOT_CMD}
 # <<<
-echo "setenv distro_bootpart 1" >> ${BOOT_CMD}
+
 echo "load \${devtype} \${devnum}:${ROOT_PARTITION} \${fdt_addr_r}" \
-     "/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
+	"/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
 
 echo "load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r}" \
-     "/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
+	"/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
 # >>> debugging
 echo "setenv bootfile ${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
 echo "setenv fdtfile ../usr/lib/linux-image-${KERNEL_VERSION}/am335x-srg3352c.dtb" >> ${BOOT_CMD}
@@ -47,8 +52,8 @@ yes|1)
 	;;
 *)
 	echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
-	     "\${ramdisk_addr_r} /boot/initrd.img-${KERNEL_VERSION}" \
-	     >> ${BOOT_CMD}
+		"\${ramdisk_addr_r} /boot/initrd.img-${KERNEL_VERSION}" \
+		>> ${BOOT_CMD}
 	INITRD_ADDR="\${ramdisk_addr_r}:\${filesize}"
 	;;
 esac
@@ -63,8 +68,8 @@ if [ -n "${OVERLAYS}" ]; then
 			OVERLAY_PATH=/usr/lib/linux-image-${KERNEL_VERSION}/
 		fi
 		echo "load \${devtype} \${devnum}:${ROOT_PARTITION}" \
-		     "\${overlay_addr_r} ${OVERLAY_PATH}${OVERLAY}" \
-		     >> ${BOOT_CMD}
+			"\${overlay_addr_r} ${OVERLAY_PATH}${OVERLAY}" \
+			>> ${BOOT_CMD}
 		echo "fdt apply \${overlay_addr_r}" >> ${BOOT_CMD}
 	done
 fi

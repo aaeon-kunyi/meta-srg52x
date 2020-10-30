@@ -17,6 +17,9 @@ DESCRIPTION = "SRG-3352x Debian Buster image"
 IMAGE_INSTALL += "customizations"
 # IMAGE_INSTALL += "initramfs-fsck-hook-ext4"
 
+# some script need this package
+IMAGE_PREINSTALL += "bsdmainutils rsync"
+
 # for swupdate
 SWU_DESCRIPTION ??= "swupdate"
 include ${SWU_DESCRIPTION}.inc

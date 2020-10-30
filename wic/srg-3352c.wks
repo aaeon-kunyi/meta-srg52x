@@ -12,6 +12,7 @@
 part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/MLO" --no-table --align 128
 part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/u-boot.img" --no-table --align 384
 
+part --ondisk mmcblk0 --fstype ext4 --label reserved --align 1024 --size 50M
 #part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active --extra-space 128M
 part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active
 
