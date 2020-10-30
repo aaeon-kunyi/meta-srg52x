@@ -211,8 +211,10 @@ copy_rootfs () {
 	#ssh keys will now get regenerated on the next bootup
 	touch /tmp/rootfs/etc/ssh/ssh.regenerate
 	flush_cache
+
+	# re-enable sshd-regen-keys
 	OLDPWD=$PWD
-	cd /tmp/rootfs/etc/systemd/system
+	cd /tmp/rootfs/etc/systemd/system/sysinit.target.wants/
 	ln -s /lib/systemd/system/sshd-regen-keys.service sshd-regen-keys.service
 	cd $OLDPWD
 	unset OLDPWD
