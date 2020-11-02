@@ -50,3 +50,8 @@ if [ -f /etc/securetty ] ; then
   echo "# for USB gadget serial console" >> /etc/securetty
   echo "ttyGS0" >> /etc/securetty
 fi
+
+# workaround, due to install permission incorrect
+if [ -f /etc/NetworkManager/system-connections/Modem.nmconnection ]; then
+  chmod 600 /etc/NetworkManager/system-connections/Modem.nmconnection
+fi
