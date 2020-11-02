@@ -47,6 +47,6 @@ local_conf_header:
     # 'aaeon'
     USER_root[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
   preinstall_package: |
-    IMAGE_PREINSTALL += "vim nano wpasupplicant network-manager usbutils python3 python3-pip"
+    IMAGE_PREINSTALL += "vim nano wpasupplicant network-manager modemmanager usbutils python3 python3-pip"
   image_type: |
     IMAGE_TYPE = "wic-targz-img"
