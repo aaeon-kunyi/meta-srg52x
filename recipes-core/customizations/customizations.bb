@@ -15,8 +15,6 @@ DESCRIPTION = "SRG-3352C Debian Buster image"
 
 SRC_URI = " \
 	file://postinst			\
-	file://ethernet			\
-	file://wlan			\
 	file://99-silent-printk.conf	\
 	file://usbgadget.conf		\
 	file://usbgadget.opt		\
@@ -31,10 +29,6 @@ DEBIAN_DEPENDS = " \
 	ifupdown, isc-dhcp-client, net-tools, iputils-ping, ssh, sshd-regen-keys"
 
 do_install() {
-	install -v -d ${D}/etc/network/interfaces.d
-	install -v -m 644 ${WORKDIR}/ethernet		${D}/etc/network/interfaces.d/
-	install -v -m 644 ${WORKDIR}/wlan		${D}/etc/network/interfaces.d/
-
 	install -v -d ${D}/etc/modules-load.d
 	install -v -m 644 ${WORKDIR}/usbgadget.conf	${D}/etc/modules-load.d
 	install -v -d ${D}/etc/modprobe.d
