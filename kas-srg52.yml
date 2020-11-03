@@ -68,5 +68,12 @@ local_conf_header:
                          uuid-runtime \
                          sudo \
                         "
+    # for avahi-daemon
+    IMAGE_PREINSTALL += "avahi-daemon bind9-host libavahi-common-data \
+                          libavahi-common3 libavahi-core7 libbind9-161 \
+                          libdaemon0 libdns1104 libfstrm0 libgeoip1 \
+                          libisc1100 libisccc161 libisccfg163   \
+                          liblmdb0 liblwres161 libprotobuf-c1   \
+                        "
   image_type: |
     IMAGE_TYPE = "wic-targz-img"
