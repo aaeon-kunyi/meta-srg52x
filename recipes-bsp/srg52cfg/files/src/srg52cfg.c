@@ -46,6 +46,7 @@ struct i2c_rdwr_ioctl_data {
 
 /* prefix AAEON MAC address */
 const static char prefixAAEON[] = "000732";
+static int bUseSysEEPROM = 0;
 
 union _FLAGS_OPT {
     uint32_t flags;
@@ -316,8 +317,17 @@ int eeprom_dump(EEPROM_HDR *e) {
 
 static int openAT24C02(void) {
     int f = -1;
-    char fname[20] = {0};
+    char fname[128] = {0};
     int device = DEFAULT_EEPROM_ADDR;
+
+    snprintf(fname, 127, "/sys/class/i2c-dev/i2c-%d/device/%d-00%02x/eeprom",
+        DEFAULT_I2CBUS, DEFAULT_I2CBUS, device);
+
+    f = open(fname, O_RDWR);
+    if (f >= 0) {
+        bUseSysEEPROM = 1;
+        return f;
+    }
 
     snprintf(fname, 19, "/dev/i2c-%d", DEFAULT_I2CBUS);
     /* to getting i2c-bus handler */
@@ -326,7 +336,7 @@ static int openAT24C02(void) {
         fprintf(stderr, "open %s failed\n", fname);
         exit(1);
     }
-      
+
     if (ioctl(f, I2C_TIMEOUT, 10) < 0) {
         fprintf(stderr, "set i2c timeout failed\n");
     }
@@ -342,9 +352,18 @@ static int openAT24C02(void) {
 static int rdFromAT24C02(int f, uint8_t b[256]) {
     int res = 0;
 
+    if (bUseSysEEPROM) {
+        lseek(f, 0, SEEK_SET);
+    }
+
     for (int i = 0; i < 256; i += res) {
         // read 32bytes
-        res = i2c_read(f, DEFAULT_EEPROM_ADDR, i, 32, b + i);
+        if (bUseSysEEPROM) {
+            res = read(f, b+i, 32);
+        }
+        else {
+            res = i2c_read(f, DEFAULT_EEPROM_ADDR, i, 32, b + i);
+        }
         if (res < 0) {
             return -3;
         }
@@ -352,24 +371,45 @@ static int rdFromAT24C02(int f, uint8_t b[256]) {
     return 0;
 }
 
+/*
+ * function: wr2402Byte
+ * param:
+ *   f : file description
+ *   i : index/offset
+ *   v : value
+ */
 static int wr2402Byte(int f, int i, uint8_t v) {
-    if (i2c_write(f, DEFAULT_EEPROM_ADDR, i, v) < 0)
-        return -3;
+    if (bUseSysEEPROM) {
+        lseek(f, i, SEEK_SET);
+        write(f, &v, 1);
+    }
+    else {
+        if (i2c_write(f, DEFAULT_EEPROM_ADDR, i, v) < 0)
+            return -3;
+    }
     usleep(18000);
     return 0;
 }
 
 static int wrIntoAT24C02(int f, uint8_t b[256]) {
     int res = 0;
-
+    if (bUseSysEEPROM) {
+        lseek(f, 0, SEEK_SET);
+    }
     for (int i = 0; i < 256; i++) {
-        // write 256 byte
-        res = i2c_write(f, DEFAULT_EEPROM_ADDR, i, b[i]);
+        if (bUseSysEEPROM) {
+            res = write(f, &b[i], 1);
+        }
+        else {
+            // write 256 byte
+            res = i2c_write(f, DEFAULT_EEPROM_ADDR, i, b[i]);
+        }
+        usleep(15000); /* we need waiting EEPROM operation */
         if (res < 0) {
             return -3;
         }
-        usleep(15000); /* we need waiting EEPROM operation */
     }
+
     return 0;
 }
 
@@ -501,7 +541,7 @@ static void sTitle(void) {
 
 static void helper(void) {
     sTitle();
-    fprintf(stdout, "\n");
+    fprintf(stdout, "  options:\n");
     fprintf(stdout, "\t-n, --name=[value]   set/get board name, 32bytes\n");
     fprintf(stdout,
             "\t-m, --manu=[value]   set/get manufacturer name, 32bytes, default:\"AAEON TECHNOLOGY "
@@ -509,8 +549,8 @@ static void helper(void) {
     fprintf(stdout, "\t-s, --sn=[value]     set/get serial number, 16bytes\n");
     fprintf(stdout, "\t-0, --eth0=[value]   set/get MAC address of eth0\n");
     fprintf(stdout, "\t-1, --eth1=[value]   set/get MAC address of eth1\n");
-    fprintf(stdout, "\t-A  --aeth0=[value]  set AAEON MAC address without common");
-    fprintf(stdout, "\t-B  --aeth1=[value]  set AAEON MAC address without common");    
+    fprintf(stdout, "\t-A  --aeth0=[value]  set AAEON MAC address without common\n");
+    fprintf(stdout, "\t-B  --aeth1=[value]  set AAEON MAC address without common\n");
     fprintf(stdout, "\t-b, --bt=[value]     set/get MAC address of bluetooth\n");
     fprintf(stdout, "\t-w, --wlan=[value]   set/get MAC address of wlan\n");
     fprintf(stdout, "\t-g, --hwcfg=[value]  set/get hardware configuration, 32bits\n");
@@ -519,7 +559,7 @@ static void helper(void) {
     fprintf(stdout, "\t-e, --swvev=[value]  set/get software version, 32bits\n");
     fprintf(stdout, "\t-f, --force          force write into EEPROM\n");
     fprintf(stdout, "\t-d, --dump           dump content of EEPROM\n");
-    fprintf(stdout, "\t-v, --verbose        verbose message\n");
+    fprintf(stdout, "\t-v, --verbose        verbose message\n\n");
 }
 
 static int preprocess_cmd_option(int argc, char *argv[]) {
@@ -659,7 +699,7 @@ static void process_options(int flag) {
         if (isForce()) {
             setHeaderMagic(&epr);
             setHeaderRev(&epr, "01");
-            setBoardName(&epr, "SRG-3352");
+            setBoardName(&epr, "SRG-3352C");
             setManufacturer(&epr, "AAEON TECHNOLOGY INC.");
             setBoardSerialNumber(&epr, "0123456789ABCDEF");
         } else {
