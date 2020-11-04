@@ -77,6 +77,8 @@ static int isForce(void) {
 }
 
 static int isHelp(void) {
+    if (optFlag.flags == 0)
+        return 1;
     return (optFlag.member.help) ? 1 : 0;
 }
 
@@ -513,7 +515,7 @@ int eeprom_print_board_info(EEPROM_HDR *e) {
 }
 
 
-static const char *short_options = "n::m::s::0::1::b::w::d::c::r::e::fvahA:B:";
+static const char *short_options = "n::m::s::0::1::A:B:b::w::g::c::r::e::fvdh";
 static const struct option long_options[] = {
     {"name", optional_argument, NULL, 'n'},
     {"manu", optional_argument, NULL, 'm'},
@@ -524,13 +526,13 @@ static const struct option long_options[] = {
     {"aeth1", required_argument, NULL, 'B'},
     {"bt", optional_argument, NULL, 'b'},
     {"wlan", optional_argument, NULL, 'w'},
-    {"hwcfg", optional_argument, NULL, 'd'},
+    {"hwcfg", optional_argument, NULL, 'g'},
     {"swcfg", optional_argument, NULL, 'c'},
     {"hwrev", optional_argument, NULL, 'r'},
     {"swver", optional_argument, NULL, 'e'},
     {"force", no_argument, NULL, 'f'},
     {"verbose", no_argument, NULL, 'v'},
-    {"dump", no_argument, NULL, 'a'},
+    {"dump", no_argument, NULL, 'd'},
     {"help", no_argument, NULL, 'h'},
     {NULL, 0, NULL, 0},
 };
@@ -555,11 +557,12 @@ static void helper(void) {
     fprintf(stdout, "\t-w, --wlan=[value]   set/get MAC address of wlan\n");
     fprintf(stdout, "\t-g, --hwcfg=[value]  set/get hardware configuration, 32bits\n");
     fprintf(stdout, "\t-c, --swcfg=[value]  set/get software configuration, 32bits\n");
-    fprintf(stdout, "\t-r, --hwrev=[value]  set/get hardware revision, 32bits\n");
-    fprintf(stdout, "\t-e, --swvev=[value]  set/get software version, 32bits\n");
+    fprintf(stdout, "\t-r, --hwrev=[value]  set/get hardware revision, 2 character\n");
+    fprintf(stdout, "\t-e, --swvev=[value]  set/get software version, 2 character\n");
     fprintf(stdout, "\t-f, --force          force write into EEPROM\n");
     fprintf(stdout, "\t-d, --dump           dump content of EEPROM\n");
     fprintf(stdout, "\t-v, --verbose        verbose message\n\n");
+    fprintf(stdout, "\t-h, --help           show this message\n\n");
 }
 
 static int preprocess_cmd_option(int argc, char *argv[]) {
@@ -786,7 +789,7 @@ static void process_options(int flag) {
             memcpy(&epr.hwCfg, &optBuf.hwCfg, sizeof(epr.hwCfg));
         }
         memcpy(buff, &epr.hwCfg, sizeof(epr.hwCfg));
-        fprintf(stdout, "0x%02X%02X%02X%02X\n",
+        fprintf(stdout, "HwCfg:0x%02X%02X%02X%02X\n",
             buff[0], buff[1], buff[2], buff[3]);        
     }
 
@@ -796,7 +799,7 @@ static void process_options(int flag) {
             memcpy(&epr.swCfg, &optBuf.swCfg, sizeof(epr.swCfg));
         }
         memcpy(buff, &epr.swCfg, sizeof(epr.swCfg));
-        fprintf(stdout, "0x%02X%02X%02X%02X\n",
+        fprintf(stdout, "SwCfg:0x%02X%02X%02X%02X\n",
             buff[0], buff[1], buff[2], buff[3]);        
     }
 
@@ -806,7 +809,7 @@ static void process_options(int flag) {
             memcpy(&epr.hwRev, &optBuf.hwRev, sizeof(epr.hwRev));
         }
         memcpy(buff, &epr.hwRev, sizeof(epr.hwRev));
-        fprintf(stdout, "%c%c\n",
+        fprintf(stdout, "HwRev:%c%c\n",
             buff[0], buff[1]);          
     }
 
@@ -816,7 +819,7 @@ static void process_options(int flag) {
             memcpy(&epr.swVer, &optBuf.swVer, sizeof(epr.swVer));
         }
         memcpy(buff, &epr.swVer, sizeof(epr.swVer));
-        fprintf(stdout, "%c%c\n",
+        fprintf(stdout, "SwVer:%c%c\n",
             buff[0], buff[1]);          
     }    
 
