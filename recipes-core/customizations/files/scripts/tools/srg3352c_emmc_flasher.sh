@@ -168,9 +168,9 @@ partition_drive () {
 
 	# erase bootloader
 	flush_cache
-	dd if=/dev/zero of=${destination} bs=1M count=8
+	dd if=/dev/zero of=${destination} bs=1M count=1
 	sync
-	dd if=${destination} of=/dev/null bs=1M count=8
+	dd if=${destination} of=/dev/null bs=1M count=1
 	sync
 	flush_cache
 
