@@ -22,7 +22,7 @@ echo " |__|__||__|__||_____| \___/ |__|__|" >> /etc/issue
 echo "" >> /etc/issue
 echo "   2020 AAEON Technology Inc." >> /etc/issue
 echo "" >> /etc/issue
-echo "SRG-3352C IoT Gateways (login: root/aaeon)" >> /etc/issue
+echo "SRG-3352C IoT Gateway (login: root/aaeon)" >> /etc/issue
 echo "" >> /etc/issue
 
 # for remote login
@@ -36,17 +36,22 @@ echo " |__|__||__|__||_____| \___/ |__|__|" >> /etc/issue.net
 echo "" >> /etc/issue.net
 echo "   2020 AAEON Technology Inc." >> /etc/issue.net
 echo "" >> /etc/issue.net
-echo "SRG-3352C IoT Gateways (login: root/aaeon)" >> /etc/issue.net
+echo "SRG-3352C IoT Gateway (login: root/aaeon)" >> /etc/issue.net
 echo "" >> /etc/issue.net
 
 echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 HOSTNAME=SRG-3352C
 echo "$HOSTNAME" > /etc/hostname
-echo "127.0.0.1 $HOSTNAME" >> /etc/hosts
+echo "127.0.1.1 $HOSTNAME" >> /etc/hosts
 
 if [ -f /etc/securetty ] ; then
   echo ""  >> /etc/securetty
   echo "# for USB gadget serial console" >> /etc/securetty
   echo "ttyGS0" >> /etc/securetty
+fi
+
+# workaround, due to install permission incorrect
+if [ -f /etc/NetworkManager/system-connections/Modem.nmconnection ]; then
+  chmod 600 /etc/NetworkManager/system-connections/Modem.nmconnection
 fi

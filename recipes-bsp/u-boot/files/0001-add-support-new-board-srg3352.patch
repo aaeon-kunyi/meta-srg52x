@@ -1,27 +1,27 @@
-From 601999f1a77b11d87e373d95fa3444fc64d71fdf Mon Sep 17 00:00:00 2001
+From 0ece03ea0a28c589380ace45e766b16e5f8aa29b Mon Sep 17 00:00:00 2001
 From: KunYi <kunyi.chen@gmail.com>
 Date: Thu, 29 Oct 2020 20:20:49 +0800
-Subject: [PATCH] add support new board srg3352
+Subject: [PATCH 1/2] add support new board srg3352
 
 the board support AAEON SRG-3352x IoT Gateway
 ---
- arch/arm/dts/srg3352.dts           | 102 +++++
+ arch/arm/dts/srg3352.dts           | 102 ++++++
  arch/arm/include/asm/mach-types.h  |   1 +
  arch/arm/mach-omap2/Kconfig        |   2 +
  arch/arm/mach-omap2/am33xx/Kconfig |  27 ++
  board/aaeon/srg3352/Kconfig        |  25 ++
  board/aaeon/srg3352/MAINTAINERS    |   6 +
  board/aaeon/srg3352/Makefile       |  12 +
- board/aaeon/srg3352/README         | 205 +++++++++
- board/aaeon/srg3352/board.c        | 656 +++++++++++++++++++++++++++++
- board/aaeon/srg3352/board.h        |  41 ++
- board/aaeon/srg3352/board_detect.c | 347 +++++++++++++++
- board/aaeon/srg3352/board_detect.h |  84 ++++
- board/aaeon/srg3352/mux.c          | 201 +++++++++
- board/aaeon/srg3352/u-boot.lds     | 165 ++++++++
- configs/srg3352_defconfig          |  63 +++
- include/configs/srg3352.h          | 351 +++++++++++++++
- 16 files changed, 2288 insertions(+)
+ board/aaeon/srg3352/README         | 205 +++++++++++
+ board/aaeon/srg3352/board.c        | 540 +++++++++++++++++++++++++++++
+ board/aaeon/srg3352/board.h        |  41 +++
+ board/aaeon/srg3352/board_detect.c | 297 ++++++++++++++++
+ board/aaeon/srg3352/board_detect.h |  91 +++++
+ board/aaeon/srg3352/mux.c          | 201 +++++++++++
+ board/aaeon/srg3352/u-boot.lds     | 165 +++++++++
+ configs/srg3352_defconfig          |  73 ++++
+ include/configs/srg3352.h          | 364 +++++++++++++++++++
+ 16 files changed, 2152 insertions(+)
  create mode 100644 arch/arm/dts/srg3352.dts
  create mode 100644 board/aaeon/srg3352/Kconfig
  create mode 100644 board/aaeon/srg3352/MAINTAINERS
@@ -209,7 +209,7 @@ index 2dac97a530..ada5dc696f 100644
  endif
 diff --git a/board/aaeon/srg3352/Kconfig b/board/aaeon/srg3352/Kconfig
 new file mode 100644
-index 0000000000..f1e1b7671e
+index 0000000000..1b550e269e
 --- /dev/null
 +++ b/board/aaeon/srg3352/Kconfig
 @@ -0,0 +1,25 @@
@@ -235,7 +235,7 @@ index 0000000000..f1e1b7671e
 +config EEPROM_CHIP_ADDRESS
 +	hex "Board EEPROM's I2C chip address"
 +	range 0 0xff
-+	default 0x50
++	default 0x57
 +
 +endif
 diff --git a/board/aaeon/srg3352/MAINTAINERS b/board/aaeon/srg3352/MAINTAINERS
@@ -481,10 +481,10 @@ index 0000000000..19e0eccbac
 +U-Boot # nand write ${fdtaddr} u-boot-spl-os
 diff --git a/board/aaeon/srg3352/board.c b/board/aaeon/srg3352/board.c
 new file mode 100644
-index 0000000000..f1e854568a
+index 0000000000..defc0dabc3
 --- /dev/null
 +++ b/board/aaeon/srg3352/board.c
-@@ -0,0 +1,656 @@
+@@ -0,0 +1,540 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * board.c
@@ -527,6 +527,8 @@ index 0000000000..f1e854568a
 +
 +DECLARE_GLOBAL_DATA_PTR;
 +
++#define RTC_OSC				(RTC_BASE + 0x0054)
++
 +/* GPIO that controls power to DDR on EVM-SK */
 +#define GPIO_TO_PIN(bank, gpio)		(32 * (bank) + (gpio))
 +#define GPIO_DDR_VTT_EN		GPIO_TO_PIN(0, 7)
@@ -552,16 +554,13 @@ index 0000000000..f1e854568a
 +/*
 + * Read header information from EEPROM into global structure.
 + */
-+#ifdef CONFIG_TI_I2C_BOARD_DETECT
-+void do_board_detect(void)
-+{
++#ifndef CONFIG_SKIP_LOWLEVEL_INIT
++void am33xx_spl_board_init(void) {
 +	enable_i2c0_pin_mux();
-+#ifndef CONFIG_DM_I2C
-+	i2c_init(CONFIG_SYS_OMAP24_I2C_SPEED, CONFIG_SYS_OMAP24_I2C_SLAVE);
-+#endif
-+	if (ti_i2c_eeprom_am_get(CONFIG_EEPROM_BUS_ADDRESS,
++
++	if (srg52_i2c_eeprom_get(CONFIG_EEPROM_BUS_ADDRESS,
 +				 CONFIG_EEPROM_CHIP_ADDRESS))
-+		printf("ti_i2c_eeprom_init failed\n");
++		puts("srg52_i2c_eeprom_init failed\n");
 +}
 +#endif
 +
@@ -750,50 +749,6 @@ index 0000000000..f1e854568a
 +}
 +#endif
 +
-+#if defined(CONFIG_CLOCK_SYNTHESIZER) && (!defined(CONFIG_SPL_BUILD) || \
-+	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD)))
-+static void request_and_set_gpio(int gpio, char *name, int val)
-+{
-+	int ret;
-+
-+	ret = gpio_request(gpio, name);
-+	if (ret < 0) {
-+		printf("%s: Unable to request %s\n", __func__, name);
-+		return;
-+	}
-+
-+	ret = gpio_direction_output(gpio, 0);
-+	if (ret < 0) {
-+		printf("%s: Unable to set %s  as output\n", __func__, name);
-+		goto err_free_gpio;
-+	}
-+
-+	gpio_set_value(gpio, val);
-+
-+	return;
-+
-+err_free_gpio:
-+	gpio_free(gpio);
-+}
-+
-+#define REQUEST_AND_SET_GPIO(N)	request_and_set_gpio(N, #N, 1);
-+#define REQUEST_AND_CLR_GPIO(N)	request_and_set_gpio(N, #N, 0);
-+
-+/**
-+ * RMII mode on ICEv2 board needs 50MHz clock. Given the clock
-+ * synthesizer With a capacitor of 18pF, and 25MHz input clock cycle
-+ * PLL1 gives an output of 100MHz. So, configuring the div2/3 as 2 to
-+ * give 50MHz output for Eth0 and 1.
-+ */
-+static struct clk_synth cdce913_data = {
-+	.id = 0x81,
-+	.capacitor = 0x90,
-+	.mux = 0x6d,
-+	.pdiv2 = 0x2,
-+	.pdiv3 = 0x2,
-+};
-+#endif
-+
 +#if defined(CONFIG_OF_BOARD_SETUP) && defined(CONFIG_OF_CONTROL) && \
 +	defined(CONFIG_DM_ETH) && defined(CONFIG_DRIVER_TI_CPSW)
 +
@@ -870,104 +825,33 @@ index 0000000000..f1e854568a
 +
 +#endif
 +
-+#if !defined(CONFIG_SPL_BUILD) || \
-+	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
-+static bool prueth_is_mii = false;
-+#endif
-+
 +/*
 + * Basic board specific setup.  Pinmux has been handled already.
 + */
 +int board_init(void)
 +{
++	u32 sys_reboot;
++
++	sys_reboot = readl(PRM_RSTST);
++	if (sys_reboot & (1 << 9))
++		puts("Reset Source: IcePick reset has occurred.\n");
++
++	if (sys_reboot & (1 << 5))
++		puts("Reset Source: Global external warm reset has occurred.\n");
++
++	if (sys_reboot & (1 << 4))
++		puts("Reset Source: watchdog reset has occurred.\n");
++
++	if (sys_reboot & (1 << 1))
++		puts("Reset Source: Global warm SW reset has occurred.\n");
++
++	if (sys_reboot & (1 << 0))
++		puts("Reset Source: Power-on reset has occurred.\n");
++
 +#if defined(CONFIG_HW_WATCHDOG)
 +	hw_watchdog_init();
 +#endif
-+
 +	gd->bd->bi_boot_params = CONFIG_SYS_SDRAM_BASE + 0x100;
-+#if defined(CONFIG_CLOCK_SYNTHESIZER) && (!defined(CONFIG_SPL_BUILD) || \
-+	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD)))
-+	if (0) {
-+		int rv;
-+		u32 reg;
-+		bool eth0_is_mii = true;
-+		bool eth1_is_mii = true;
-+
-+		REQUEST_AND_SET_GPIO(GPIO_PR1_MII_CTRL);
-+		/* Make J19 status available on GPIO1_26 */
-+		REQUEST_AND_CLR_GPIO(GPIO_MUX_MII_CTRL);
-+
-+		REQUEST_AND_SET_GPIO(GPIO_FET_SWITCH_CTRL);
-+		/*
-+		 * Both ports can be set as RMII-CPSW or MII-PRU-ETH using
-+		 * jumpers near the port. Read the jumper value and set
-+		 * the pinmux, external mux and PHY clock accordingly.
-+		 * As jumper line is overridden by PHY RX_DV pin immediately
-+		 * after bootstrap (power-up/reset), we need to sample
-+		 * it during PHY reset using GPIO rising edge detection.
-+		 */
-+		REQUEST_AND_SET_GPIO(GPIO_PHY_RESET);
-+		/* Enable rising edge IRQ on GPIO0_11 and GPIO 1_26 */
-+		reg = readl(GPIO0_RISINGDETECT) | BIT(11);
-+		writel(reg, GPIO0_RISINGDETECT);
-+		reg = readl(GPIO1_RISINGDETECT) | BIT(26);
-+		writel(reg, GPIO1_RISINGDETECT);
-+		/* Reset PHYs to capture the Jumper setting */
-+		gpio_set_value(GPIO_PHY_RESET, 0);
-+		udelay(2);	/* PHY datasheet states 1uS min. */
-+		gpio_set_value(GPIO_PHY_RESET, 1);
-+
-+		reg = readl(GPIO0_IRQSTATUSRAW) & BIT(11);
-+		if (reg) {
-+			writel(reg, GPIO0_IRQSTATUS1); /* clear irq */
-+			/* RMII mode */
-+			printf("ETH0, CPSW\n");
-+			eth0_is_mii = false;
-+		} else {
-+			/* MII mode */
-+			printf("ETH0, PRU\n");
-+			cdce913_data.pdiv3 = 4;	/* 25MHz PHY clk */
-+		}
-+
-+		reg = readl(GPIO1_IRQSTATUSRAW) & BIT(26);
-+		if (reg) {
-+			writel(reg, GPIO1_IRQSTATUS1); /* clear irq */
-+			/* RMII mode */
-+			printf("ETH1, CPSW\n");
-+			gpio_set_value(GPIO_MUX_MII_CTRL, 1);
-+			eth1_is_mii = false;
-+		} else {
-+			/* MII mode */
-+			printf("ETH1, PRU\n");
-+			cdce913_data.pdiv2 = 4;	/* 25MHz PHY clk */
-+		}
-+
-+		if (eth0_is_mii != eth1_is_mii) {
-+			printf("Unsupported Ethernet port configuration\n");
-+			printf("Both ports must be set as RMII or MII\n");
-+			hang();
-+		}
-+
-+		prueth_is_mii = eth0_is_mii;
-+
-+		/* disable rising edge IRQs */
-+		reg = readl(GPIO0_RISINGDETECT) & ~BIT(11);
-+		writel(reg, GPIO0_RISINGDETECT);
-+		reg = readl(GPIO1_RISINGDETECT) & ~BIT(26);
-+		writel(reg, GPIO1_RISINGDETECT);
-+
-+		rv = setup_clock_synthesizer(&cdce913_data);
-+		if (rv) {
-+			printf("Clock synthesizer setup failed %d\n", rv);
-+			return rv;
-+		}
-+
-+		/* reset PHYs */
-+		gpio_set_value(GPIO_PHY_RESET, 0);
-+		udelay(2);	/* PHY datasheet states 1uS min. */
-+		gpio_set_value(GPIO_PHY_RESET, 1);
-+	}
-+#endif
 +
 +	return 0;
 +}
@@ -982,7 +866,7 @@ index 0000000000..f1e854568a
 +#endif
 +
 +#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-+	set_board_info_env("SRG3352C");
++	set_board_info_env("SRG-3352C");
 +	set_project_info_env();
 +
 +	/*
@@ -1098,7 +982,7 @@ index 0000000000..f1e854568a
 +#ifdef CONFIG_SPL_LOAD_FIT
 +int board_fit_config_name_match(const char *name)
 +{
-+	if (!strcmp(name, "srg3352"))
++	if (!strcmp(name, "SRG-3352C"))
 +		return 0;
 +
 +	return -1;
@@ -1190,10 +1074,10 @@ index 0000000000..dd94baf2d1
 +#endif
 diff --git a/board/aaeon/srg3352/board_detect.c b/board/aaeon/srg3352/board_detect.c
 new file mode 100644
-index 0000000000..653d1d6c5b
+index 0000000000..ba0923fce9
 --- /dev/null
 +++ b/board/aaeon/srg3352/board_detect.c
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,297 @@
 +// SPDX-License-Identifier: GPL-2.0+
 +/*
 + * Library to support early TI EVM EEPROM handling
@@ -1211,79 +1095,24 @@ index 0000000000..653d1d6c5b
 +//#include <env.h>
 +#include <i2c.h>
 +#include <mmc.h>
++#include <stdio.h>
++#include <linux/ctype.h>
 +#include <errno.h>
 +#include <malloc.h>
 +
 +#include "board_detect.h"
 +
-+#if !defined(CONFIG_DM_I2C)
-+/**
-+ * ti_i2c_eeprom_init - Initialize an i2c bus and probe for a device
-+ * @i2c_bus: i2c bus number to initialize
-+ * @dev_addr: Device address to probe for
-+ *
-+ * Return: 0 on success or corresponding error on failure.
-+ */
-+static int __maybe_unused ti_i2c_eeprom_init(int i2c_bus, int dev_addr)
-+{
-+	int rc;
-+
-+	if (i2c_bus >= 0) {
-+		rc = i2c_set_bus_num(i2c_bus);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return i2c_probe(dev_addr);
-+}
-+
-+/**
-+ * ti_i2c_eeprom_read - Read data from an EEPROM
-+ * @dev_addr: The device address of the EEPROM
-+ * @offset: Offset to start reading in the EEPROM
-+ * @ep: Pointer to a buffer to read into
-+ * @epsize: Size of buffer
-+ *
-+ * Return: 0 on success or corresponding result of i2c_read
-+ */
-+static int __maybe_unused ti_i2c_eeprom_read(int dev_addr, int offset,
-+					     uchar *ep, int epsize)
-+{
-+	return i2c_read(dev_addr, offset, 2, ep, epsize);
-+}
-+#endif
-+
-+/**
-+ * ti_eeprom_string_cleanup() - Handle eeprom programming errors
-+ * @s:	eeprom string (should be NULL terminated)
-+ *
-+ * Some Board manufacturers do not add a NULL termination at the
-+ * end of string, instead some binary information is kludged in, hence
-+ * convert the string to just printable characters of ASCII chart.
-+ */
-+static void __maybe_unused ti_eeprom_string_cleanup(char *s)
-+{
-+	int i, l;
-+
-+	l = strlen(s);
-+	for (i = 0; i < l; i++, s++)
-+		if (*s < ' ' || *s > '~') {
-+			*s = 0;
-+			break;
-+		}
-+}
 +
 +__weak void gpi2c_init(void)
 +{
 +}
 +
-+static int __maybe_unused ti_i2c_eeprom_get(int bus_addr, int dev_addr,
++static int __maybe_unused srg5x_i2c_eeprom_get(int bus_addr, int dev_addr,
 +					    u32 header, u32 size, uint8_t *ep)
 +{
 +	u32 hdr_read;
 +	int rc;
 +
-+#if defined(CONFIG_DM_I2C)
 +	struct udevice *dev;
 +	struct udevice *bus;
 +
@@ -1297,7 +1126,7 @@ index 0000000000..653d1d6c5b
 +	/*
 +	 * Read the header first then only read the other contents.
 +	 */
-+	rc = i2c_set_chip_offset_len(dev, 2);
++	rc = i2c_set_chip_offset_len(dev, 1);
 +	if (rc)
 +		return rc;
 +
@@ -1328,51 +1157,47 @@ index 0000000000..653d1d6c5b
 +	rc = dm_i2c_read(dev, 0, ep, size);
 +	if (rc)
 +		return rc;
-+#else
-+	u32 byte;
 +
-+	gpi2c_init();
-+	rc = ti_i2c_eeprom_init(bus_addr, dev_addr);
-+	if (rc)
-+		return rc;
++	return 0;
++}
 +
-+	/*
-+	 * Read the header first then only read the other contents.
-+	 */
-+	byte = 2;
++int __maybe_unused srg52_i2c_eeprom_get(int bus_addr, int dev_addr)
++{
++	int rc, size;
++	struct srg52_eeprom_t *ep;
++	struct srg52_eeprom_t buf;
 +
-+	rc = i2c_read(dev_addr, 0x0, byte, (uint8_t *)&hdr_read, 4);
-+	if (rc)
-+		return rc;
-+
-+	/* Corrupted data??? */
-+	if (hdr_read != header) {
-+		rc = i2c_read(dev_addr, 0x0, byte, (uint8_t *)&hdr_read, 4);
-+		/*
-+		 * read the eeprom header using i2c again, but use only a
-+		 * 1 byte address (some legacy boards need this..)
-+		 */
-+		byte = 1;
-+		if (rc) {
-+			rc = i2c_read(dev_addr, 0x0, byte, (uint8_t *)&hdr_read,
-+				      4);
-+		}
-+		if (rc)
-+			return rc;
++	ep = SRG52_EEPROM_DATA;
++#ifndef CONFIG_SPL_BUILD
++	if (ep->magic == SRG52_EEPROM_HDR_MAGIC) {
++		printf("was read eeprom\n");
++		return 0; /* EEPROM has already been read */
 +	}
-+	if (hdr_read != header)
-+		return -1;
++#endif
++	/* Set to 0 all fields */
++	memset(ep, 0, sizeof(*ep));
++	memset(&buf, 0, sizeof(buf));
++	ep->magic = SRG52_EEPROM_HDR_DEAD;
 +
-+	rc = i2c_read(dev_addr, 0x0, byte, ep, size);
++	rc = srg5x_i2c_eeprom_get(bus_addr, dev_addr, SRG52_EEPROM_HDR_MAGIC,
++					sizeof(buf), (uint8_t *)&buf);
 +	if (rc)
 +		return rc;
-+#endif
++
++	ep->magic = buf.magic;
++	memcpy(ep->rev, buf.rev, 2);
++	strlcpy(ep->bname, buf.bname, SRG52_EEPROM_HDR_BRD_LEN + 1);
++	strlcpy(ep->serial, buf.serial, SRG52_EEPROM_HDR_SN_LEN + 1);
++	strlcpy(ep->manufacturer, buf.manufacturer, SRG52_EEPROM_HDR_SN_LEN + 1);
++	size = ((int)(&ep->crc16) - (int)(&ep->macEth0));
++	memcpy(&ep->macEth0, &buf.macEth0, size);
 +	return 0;
 +}
 +
 +int __maybe_unused srg52_i2c_eeprom_set(const char *name, const u16 rev)
 +{
 +	struct srg52_eeprom_t *ep;
++	u16 hdr_rev = SRG52_EEPROM_HDR_REV;
 +
 +	if (!name || !rev)
 +		return -1;
@@ -1384,37 +1209,47 @@ index 0000000000..653d1d6c5b
 +	/* Set to 0 all fields */
 +	memset(ep, 0, sizeof(*ep));
 +	strncpy((char *)ep->bname, name, SRG52_EEPROM_HDR_BRD_LEN);
-+	ep->hwRev = rev;
 +	/* Some dummy serial number to identify the platform */
 +	strncpy((char *)ep->serial, "00000000000000000", SRG52_EEPROM_HDR_SN_LEN);
 +	strncpy((char *)ep->manufacturer, "AAEON TECHNOLOGY INC.", SRG52_EEPROM_HDR_MNF_LEN);
 +	/* Mark it with a valid magic header */
 +	ep->magic = SRG52_EEPROM_HDR_MAGIC;
-+	ep->rev = SRG52_EEPROM_HDR_REV;
++	memcpy(&ep->rev, &hdr_rev, SRG52_EEPROM_HDR_REV_LEN);
++
 +
 +already_set:
 +	return 0;
 +}
 +
 +void __maybe_unused
-+board_ti_get_eth_mac_addr(int index,
++board_srg52_get_eth_mac_addr(int index,
 +			  u8 mac_addr[SRG52_EEPROM_HDR_ETH_ALEN])
 +{
-+#if 0
-+	struct ti_common_eeprom *ep = TI_EEPROM_DATA;
 +
-+	if (ep->header == TI_DEAD_EEPROM_MAGIC)
-+		goto fail;
++	struct srg52_eeprom_t *ep = SRG52_EEPROM_DATA;
 +
-+	if (index < 0 || index >= TI_EEPROM_HDR_NO_OF_MAC_ADDR)
-+		goto fail;
++	if (ep->magic != SRG52_EEPROM_HDR_MAGIC) {
++		memset(mac_addr, 0, SRG52_EEPROM_HDR_ETH_ALEN);
++		return;
++	}
 +
-+	memcpy(mac_addr, ep->mac_addr[index], TI_EEPROM_HDR_ETH_ALEN);
-+	return;
-+
-+fail:
-+	memset(mac_addr, 0, TI_EEPROM_HDR_ETH_ALEN);
-+#endif
++	switch(index) {
++	case 0:
++		memcpy(mac_addr, ep->macEth0, SRG52_EEPROM_HDR_ETH_ALEN);
++		break;
++	case 1:
++		memcpy(mac_addr, ep->macEth1, SRG52_EEPROM_HDR_ETH_ALEN);
++		break;
++	case 2:
++		memcpy(mac_addr, ep->macBt, SRG52_EEPROM_HDR_ETH_ALEN);
++		break;
++	case 3:
++		memcpy(mac_addr, ep->macWlan, SRG52_EEPROM_HDR_ETH_ALEN);
++		break;
++	default:
++		memset(mac_addr, 0, SRG52_EEPROM_HDR_ETH_ALEN);
++		break;
++	}
 +}
 +
 +#include "config.h"
@@ -1422,115 +1257,114 @@ index 0000000000..653d1d6c5b
 +#include "generated/timestamp_autogenerated.h"
 +#include "generated/version_autogenerated.h"
 +
++#if !defined(CONFIG_SPL_BUILD)
++
 +void __maybe_unused set_project_info_env(void)
 +{
-+        char bl_version[30];
-+        char bl_date[30];
++    char bl_version[30];
++    char bl_date[30];
 +
-+        snprintf(bl_version, sizeof(bl_version), "%s", PLAIN_VERSION);
-+        snprintf(bl_date, sizeof(bl_date), "%s", U_BOOT_DMI_DATE);
++    snprintf(bl_version, sizeof(bl_version), "%s", PLAIN_VERSION);
++    snprintf(bl_date, sizeof(bl_date), "%s", U_BOOT_DMI_DATE);
 +
-+        env_set("bl_vendor", CONFIG_SMBIOS_MANUFACTURER);
-+        env_set("bl_version", bl_version);
-+        env_set("bl_date", bl_date);
++    env_set("bl_vendor", CONFIG_SMBIOS_MANUFACTURER);
++    env_set("bl_version", bl_version);
++    env_set("bl_date", bl_date);
 +
-+        env_set("product_name", CONFIG_SMBIOS_PRODUCT_NAME);
-+        env_set("product_version", "unknown");
++    env_set("product_name", CONFIG_SMBIOS_PRODUCT_NAME);
++}
 +
-+        env_set("board_vendor", CONFIG_SMBIOS_MANUFACTURER);
-+        env_set("board_name", CONFIG_SMBIOS_PRODUCT_NAME);
-+        env_set("board_version", "unknown");
++bool board_srg52_get_common(char *target, char *buff, int len)
++{
++	char temp[SRG52_EEPROM_HDR_BRD_LEN + 1] = { 0 };
++
++	for (int i=0; i < len; i++) {
++		if (isprint(target[i])) {
++			temp[i] = target[i];
++		}
++		else if (target[i] == '\0') {
++			len = i;
++			break;
++		}
++		else
++			return false;
++	}
++	memcpy(buff, temp, len + 1);
++	return true;
++}
++
++bool board_srg52_get_boardname(char *buff)
++{
++	struct srg52_eeprom_t *ep = SRG52_EEPROM_DATA;
++	if (buff == NULL || (!board_srg52_was_eeprom_read()))
++		return false;
++
++	return board_srg52_get_common(ep->bname, buff, SRG52_EEPROM_HDR_BRD_LEN);
++}
++
++bool board_srg52_get_serial(char *buff) {
++	struct srg52_eeprom_t *ep = SRG52_EEPROM_DATA;
++	if (buff == NULL || (!board_srg52_was_eeprom_read()))
++		return false;
++
++	return board_srg52_get_common(ep->serial, buff, SRG52_EEPROM_HDR_SN_LEN);
++}
++
++bool board_srg52_get_manufacturer(char *buff) {
++	struct srg52_eeprom_t *ep = SRG52_EEPROM_DATA;
++	if (buff == NULL || (!board_srg52_was_eeprom_read()))
++		return false;
++
++	return board_srg52_get_common(ep->manufacturer, buff, SRG52_EEPROM_HDR_MNF_LEN);
 +}
 +
 +void __maybe_unused set_board_info_env(char *name)
 +{
++	struct srg52_eeprom_t *ep = SRG52_EEPROM_DATA;
 +	char *unknown = "unknown";
-+	char *defname = "SRG3352C";
-+	//struct ti_common_eeprom *ep = TI_EEPROM_DATA;
++	char *defname = "SRG-3352C";
++	char buff[36] = { 0 };
++	bool bEE = board_srg52_was_eeprom_read();
 +
-+	if (name)
++	if (bEE && board_srg52_get_boardname(buff))
++		env_set("board_name", buff);
++	else if (name)
 +		env_set("board_name", name);
-+	#if 0
-+	else if (ep->name)
-+		env_set("board_name", ep->name);
-+	#endif
 +	else
 +		env_set("board_name", defname);
-+	#if 0
-+	if (ep->version)
-+		env_set("board_rev", ep->version);
++
++	if (bEE && board_srg52_get_manufacturer(buff))
++		env_set("board_vendor", buff);
++
++	if (bEE && ep->hwRev) {
++		snprintf(buff, 31, "%c%c", ep->hwRev[0], ep->hwRev[1]);
++		env_set("board_rev", buff);
++	}
 +	else
-+	#endif
 +		env_set("board_rev", unknown);
-+	#if 0
-+	if (ep->serial)
-+		env_set("board_serial", ep->serial);
++
++	if (bEE && board_srg52_get_serial(buff)) {
++		env_set("board_serial", buff);
++	}
 +	else
-+	#endif
 +		env_set("board_serial", unknown);
-+}
 +
-+static u64 mac_to_u64(u8 mac[6])
-+{
-+	int i;
-+	u64 addr = 0;
-+
-+	for (i = 0; i < 6; i++) {
-+		addr <<= 8;
-+		addr |= mac[i];
++	if (bEE) {
++		snprintf(buff, 31, "%d", ep->bootCount);
++		env_set("boot_count", buff);
 +	}
 +
-+	return addr;
-+}
-+
-+static void u64_to_mac(u64 addr, u8 mac[6])
-+{
-+	mac[5] = addr;
-+	mac[4] = addr >> 8;
-+	mac[3] = addr >> 16;
-+	mac[2] = addr >> 24;
-+	mac[1] = addr >> 32;
-+	mac[0] = addr >> 40;
-+}
-+
-+void board_ti_set_ethaddr(int index)
-+{
-+	uint8_t mac_addr[6];
-+	int i;
-+	u64 mac1, mac2;
-+	u8 mac_addr1[6], mac_addr2[6];
-+	int num_macs;
-+	/*
-+	 * Export any Ethernet MAC addresses from EEPROM.
-+	 * The 2 MAC addresses in EEPROM define the address range.
-+	 */
-+	board_ti_get_eth_mac_addr(0, mac_addr1);
-+	board_ti_get_eth_mac_addr(1, mac_addr2);
-+
-+	if (is_valid_ethaddr(mac_addr1) && is_valid_ethaddr(mac_addr2)) {
-+		mac1 = mac_to_u64(mac_addr1);
-+		mac2 = mac_to_u64(mac_addr2);
-+
-+		/* must contain an address range */
-+		num_macs = mac2 - mac1 + 1;
-+		if (num_macs <= 0)
-+			return;
-+
-+		if (num_macs > 50) {
-+			printf("%s: Too many MAC addresses: %d. Limiting to 50\n",
-+			       __func__, num_macs);
-+			num_macs = 50;
-+		}
-+
-+		for (i = 0; i < num_macs; i++) {
-+			u64_to_mac(mac1 + i, mac_addr);
++	if (bEE) {
++		u8 mac_addr[6];
++		for (int i =0; i < 2; i++) {
++			board_srg52_get_eth_mac_addr(i, mac_addr);
 +			if (is_valid_ethaddr(mac_addr)) {
-+				eth_env_set_enetaddr_by_index("eth", i + index,
-+							      mac_addr);
++				eth_env_set_enetaddr_by_index("eth", i, mac_addr);
 +			}
 +		}
 +	}
 +}
++#endif
 +
 +bool __maybe_unused board_srg52_was_eeprom_read(void)
 +{
@@ -1543,10 +1377,10 @@ index 0000000000..653d1d6c5b
 +}
 diff --git a/board/aaeon/srg3352/board_detect.h b/board/aaeon/srg3352/board_detect.h
 new file mode 100644
-index 0000000000..c7cb216832
+index 0000000000..b160b56205
 --- /dev/null
 +++ b/board/aaeon/srg3352/board_detect.h
-@@ -0,0 +1,84 @@
+@@ -0,0 +1,91 @@
 +/* SPDX-License-Identifier: GPL-2.0+ */
 +/*
 + * Library to support AAEON SRG3352 family
@@ -1558,6 +1392,7 @@ index 0000000000..c7cb216832
 +#define __BOARD_DETECT_H
 +
 +#define SRG52_EEPROM_HDR_MAGIC      0x544F4941	 /* 'AIOT'  */
++#define SRG52_EEPROM_HDR_DEAD       0x44414544	 /* 'DEAD'  */
 +#define SRG52_EEPROM_HDR_REV01      0x3130       /* '01'    */
 +#define SRG52_EEPROM_HDR_REV        (SRG52_EEPROM_HDR_REV01)
 +
@@ -1573,24 +1408,25 @@ index 0000000000..c7cb216832
 +#define SRG52_EEPROM_HDR_RVSCS_LEN  (32)
 +#define SRG52_EEPROM_HDR_BTCNT_LEN  (4)
 +#define SRG52_EEPROM_HDR_CRC16_LEN  (2)
++#define SRG52_EEPROM_HDR_NO_OF_MAC_ADDR (4)
 +
 +struct  srg52_eeprom_t {
-+    u32 magic;				/* header magic numver */
-+    u16 rev;				/* header revision, 01 */
-+    u8  bname[32];			/* board name */
-+    u8 	serial[16];			/* board serial number */
-+    u8 	manufacturer[32];	/* manufacture name */
-+    u8 	macEth0[6];			/* eth0 address */
-+    u8 	macEth1[6];			/* eth1 address */
-+    u8 	macBt[6];
-+    u8 	macWlan[6];
-+    u16 hwRev;				/* hardware revision */
-+    u32 hwCfg;				/* hardware configuration */
-+    u16 swVer;				/* software verision */
-+    u32 swCfg;				/* software configuration */
-+    u8 	reservedCus[32];	/* reserve for customer */
-+    u32 bootCount;          /* Boot counter */
-+    u16 crc16;
++	u32		magic;						/* header magic numver */
++	u8		rev[2];						/* header revision, 01 */
++	char		bname[SRG52_EEPROM_HDR_BRD_LEN];		/* board name */
++	char		serial[SRG52_EEPROM_HDR_SN_LEN];		/* board serial number */
++	char		manufacturer[SRG52_EEPROM_HDR_MNF_LEN];		/* manufacture name */
++	u8		macEth0[SRG52_EEPROM_HDR_ETH_ALEN];		/* eth0 address */
++	u8		macEth1[SRG52_EEPROM_HDR_ETH_ALEN];		/* eth1 address */
++	u8		macBt[SRG52_EEPROM_HDR_ETH_ALEN];
++	u8		macWlan[SRG52_EEPROM_HDR_ETH_ALEN];
++	u8		hwRev[SRG52_EEPROM_HDR_HWREV_LEN];		/* hardware revision */
++	u32		hwCfg;						/* hardware configuration */
++	u8		swVer[SRG52_EEPROM_HDR_SWVER_LEN];		/* software verision */
++	u32		swCfg;						/* software configuration */
++	u8		reservedCus[SRG52_EEPROM_HDR_RVSCS_LEN];/* reserve for customer */
++	u32		bootCount;					/* Boot counter */
++	u16		crc16;
 +} __attribute__((__packed__));
 +
 +#define SRG52_EEPROM_SIZE	sizeof(struct srg52_eeprom_t)
@@ -1610,16 +1446,21 @@ index 0000000000..c7cb216832
 +void set_board_info_env(char *name);
 +
 +/**
-+ * board_ti_set_ethaddr- Sets the ethaddr environment from EEPROM
++ *
++ *
++ */
++int srg52_i2c_eeprom_get(int bus_addr, int dev_addr);
++/**
++ * board_srg52_set_ethaddr- Sets the ethaddr environment from EEPROM
 + * @index: The first eth<index>addr environment variable to set
 + *
 + * EEPROM should be already read before calling this function.
-+ * The EEPROM contains 2 MAC addresses which define the MAC address
++ * The EEPROM contains 4 MAC addresses which define the MAC address
 + * range (i.e. first and last MAC address).
 + * This function sets the ethaddr environment variable for all
 + * the available MAC addresses starting from eth<index>addr.
 + */
-+void board_ti_set_ethaddr(int index);
++void board_srg52_set_ethaddr(int index);
 +
 +/**
 + * board_srg52_was_eeprom_read() - Check to see if the eeprom contents have been read
@@ -2011,10 +1852,10 @@ index 0000000000..1113057d5f
 +}
 diff --git a/configs/srg3352_defconfig b/configs/srg3352_defconfig
 new file mode 100644
-index 0000000000..0021bc34fd
+index 0000000000..0a680f4c07
 --- /dev/null
 +++ b/configs/srg3352_defconfig
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,73 @@
 +CONFIG_ARM=y
 +CONFIG_ARCH_OMAP2PLUS=y
 +CONFIG_TI_COMMON_CMD_OPTIONS=y
@@ -2038,22 +1879,32 @@ index 0000000000..0021bc34fd
 +# CONFIG_SPL_NAND_SUPPORT is not set
 +CONFIG_SPL_NET_SUPPORT=y
 +CONFIG_SPL_NET_VCI_STRING="SRG3352 U-Boot SPL"
-+CONFIG_SPL_OS_BOOT=y
 +CONFIG_SPL_USB_GADGET=y
 +CONFIG_SPL_USB_ETHER=y
 +CONFIG_CMD_SPL=y
 +# CONFIG_CMD_FLASH is not set
++CONFIG_CMD_GPT=y
++CONFIG_CMD_GPT_RENAME=y
 +# CONFIG_CMD_SETEXPR is not set
++CONFIG_CMD_BSP=y
 +# CONFIG_SPL_EFI_PARTITION is not set
 +CONFIG_OF_CONTROL=y
 +CONFIG_DEFAULT_DEVICE_TREE="srg3352"
++CONFIG_MULTI_DTB_FIT=y
++# CONFIG_ENV_IS_IN_EXT4 is not set
++CONFIG_ENV_IS_IN_MMC=y
++CONFIG_ENV_EXT4_INTERFACE="mmc"
++CONFIG_ENV_EXT4_DEVICE_AND_PART="1:auto"
++CONFIG_ENV_EXT4_FILE="/boot/uEnv.txt"
 +CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG=y
++CONFIG_SPL_ENV_IS_NOWHERE=y
++CONFIG_NET_RANDOM_ETHADDR=y
 +CONFIG_BOOTCOUNT_LIMIT=y
 +CONFIG_CLK=y
-+CONFIG_CLK_CDCE9XX=y
 +CONFIG_USB_FUNCTION_FASTBOOT=y
 +CONFIG_DM_I2C=y
 +CONFIG_MISC=y
++CONFIG_MMC_BROKEN_CD=y
 +CONFIG_DM_MMC=y
 +# CONFIG_MMC_HW_PARTITIONING is not set
 +CONFIG_MMC_OMAP_HS=y
@@ -2080,10 +1931,10 @@ index 0000000000..0021bc34fd
 +CONFIG_LZO=y
 diff --git a/include/configs/srg3352.h b/include/configs/srg3352.h
 new file mode 100644
-index 0000000000..84624d8825
+index 0000000000..55dc4b76dc
 --- /dev/null
 +++ b/include/configs/srg3352.h
-@@ -0,0 +1,351 @@
+@@ -0,0 +1,364 @@
 +/*
 + * am335x_evm.h
 + *
@@ -2135,7 +1986,8 @@ index 0000000000..84624d8825
 +#define V_SCLK				(V_OSCK)
 +
 +#define CONFIG_SYS_LDSCRIPT		"board/aaeon/srg3352/u-boot.lds"
-+
++/* enable EMMC_BOOT for enviroments */
++#define CONFIG_EMMC_BOOT
 +/* Always 128 KiB env size */
 +#define CONFIG_ENV_SIZE			SZ_128K
 +
@@ -2339,12 +2191,24 @@ index 0000000000..84624d8825
 +		"run ramargs; " \
 +		"bootz ${loadaddr} ${rdaddr} ${fdtaddr}\0" \
 +	"findfdt="\
-+		"if test $board_name = srt3352; then " \
++		"echo board_name=$board_name ...; " \
++		"if test $board_name = srg3352; then " \
++			"setenv fdtfile am335x-srg3352.dtb; " \
++		"elif test $board_name = srg-3352; then " \
++			"setenv fdtfile am335x-srg3352.dtb; " \
++		"elif test $board_name = SRG3352; then " \
++			"setenv fdtfile am335x-srg3352.dtb; " \
++		"elif test $board_name = SRG-3352; then " \
++			"setenv fdtfile am335x-srg3352.dtb; " \
++		"elif test $board_name = srg3352c; then " \
 +			"setenv fdtfile am335x-srg3352c.dtb; " \
-+		"elif test $board_name = srg3352; then " \
++		"elif test $board_name = srg-3352c; then " \
 +			"setenv fdtfile am335x-srg3352c.dtb; " \
 +		"elif test $board_name = SRG3352C; then " \
-+			"setenv fdtfile am335x-srg3352c.dtb; fi; " \
++			"setenv fdtfile am335x-srg3352c.dtb; " \
++		"elif test $board_name = SRG-3352C; then " \
++			"setenv fdtfile am335x-srg3352c.dtb; " \
++		"fi; " \
 +		"if test $fdtfile = undefined; then " \
 +			"echo WARNING: Could not determine device tree to use; fi; \0" \
 +	"init_console=" \
@@ -2364,7 +2228,7 @@ index 0000000000..84624d8825
 +
 +#define CONFIG_ENV_EEPROM_IS_ON_I2C
 +#define CONFIG_SYS_I2C_EEPROM_ADDR      0x57	/* Main EEPROM */
-+#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	2
++#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN	1
 +
 +/* PMIC support */
 +#define CONFIG_POWER_TPS65217
@@ -2413,9 +2277,9 @@ index 0000000000..84624d8825
 +#endif
 +
 +#if defined(CONFIG_EMMC_BOOT)
-+#define CONFIG_SYS_MMC_ENV_DEV		1
-+#define CONFIG_SYS_MMC_ENV_PART		0
-+#define CONFIG_ENV_OFFSET		0x260000
++#define CONFIG_SYS_MMC_ENV_DEV	1
++#define CONFIG_SYS_MMC_ENV_PART	0
++#define CONFIG_ENV_OFFSET		(1 * 1024 * 1024)
 +#define CONFIG_ENV_OFFSET_REDUND	(CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE)
 +#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
 +#define CONFIG_SYS_MMC_MAX_DEVICE	2

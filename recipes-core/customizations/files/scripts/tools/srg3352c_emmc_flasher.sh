@@ -168,9 +168,9 @@ partition_drive () {
 
 	# erase bootloader
 	flush_cache
-	dd if=/dev/zero of=${destination} bs=1M count=8
+	dd if=/dev/zero of=${destination} bs=1M count=1
 	sync
-	dd if=${destination} of=/dev/null bs=1M count=8
+	dd if=${destination} of=/dev/null bs=1M count=1
 	sync
 	flush_cache
 
@@ -182,14 +182,35 @@ partition_drive () {
 	sync
 	flush_cache
 
-	#128Mb reserved formatted boot partition
-	LC_ALL=C sfdisk --force "${destination}" <<-__EOF__
-		1,128M,0x83,*
-		,,,-
-	__EOF__
+	# DOS MBR use sector 0
+	# 8192 sector: 8192*512B, 4MB for bootloader/environments
+	# p1: 128MB reserved formatted boot partition
+	# p2: 2GB, root filesystem, * boot active
+	# p3: another for user data
+	#
+	# except the below configuration
+	# -------------------------------------------------------------
+	# Device         Boot   Start      End  Sectors  Size Id Type
+	# /dev/mmcblk1p1         8192   270335   262144  128M 83 Linux
+	# /dev/mmcblk1p2 *     270336  4464639  4194304    2G 83 Linux
+	# /dev/mmcblk1p3      4464640 15269887 10805248  5.2G 83 Linux
+	# -------------------------------------------------------------
+	# >>>--------------- for MBR ----------------------------------
+	#LC_ALL=C sfdisk --force "${destination}" <<-__EOF__
+	#	8192,	128M, ,
+	#	270336,2048M, ,*
+	#	4464640,,,-
+	#__EOF__
+	# <<<----------------------------------------------------------
+	# >>>--------------- for GPT/EFI ------------------------------
+	LC_ALL=C sgdisk --zap-all --clear "${destination}" > /dev/null 2>&1 || true
+	LC_ALL=C sgdisk -n 1:8192:+128MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}"
+	LC_ALL=C sgdisk -n 2::+2GiB -t 2:8300 -c 2:"rootfs" -A 2:set:2 -u 2:69DAD710-2CE4-4E3C-B16C-21A1DD49ABED3 "${destination}"
+	LC_ALL=C sgdisk -n 3:: -t 3:8300 -c 3:"data" -u 3:933AC7E1-2EB4-4F13-B844-0E14E2AEF9915 "${destination}"
+	# for boot flags, bootloader need this
+	# LC_ALL=C sgdisk -A 2:set:2 "${destination}"
+	# <<<----------------------------------------------------------
 
-	flush_cache
-	fdisk_toggle_boot
 	flush_cache
 	format_root
 }

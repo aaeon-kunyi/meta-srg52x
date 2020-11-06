@@ -15,13 +15,13 @@ DESCRIPTION = "SRG-3352C Debian Buster image"
 
 SRC_URI = " \
 	file://postinst			\
-	file://ethernet			\
-	file://wlan			\
+	file://fw_env.config		\
 	file://99-silent-printk.conf	\
 	file://usbgadget.conf		\
 	file://usbgadget.opt		\
 	file://srg52.img		\
 	file://scripts/tools		\
+	file://Modem.nmconnection	\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -30,10 +30,6 @@ DEBIAN_DEPENDS = " \
 	ifupdown, isc-dhcp-client, net-tools, iputils-ping, ssh, sshd-regen-keys"
 
 do_install() {
-	install -v -d ${D}/etc/network/interfaces.d
-	install -v -m 644 ${WORKDIR}/ethernet		${D}/etc/network/interfaces.d/
-	install -v -m 644 ${WORKDIR}/wlan		${D}/etc/network/interfaces.d/
-
 	install -v -d ${D}/etc/modules-load.d
 	install -v -m 644 ${WORKDIR}/usbgadget.conf	${D}/etc/modules-load.d
 	install -v -d ${D}/etc/modprobe.d
@@ -51,6 +47,12 @@ do_install() {
 	install -v -d ${D}/opt/scripts/tools
 	install -m 0755 -d ${D}/opt/scripts
 	install -v -m 755 ${WORKDIR}/scripts/tools/srg3352c_emmc_flasher.sh	${D}/opt/scripts/tools
+
+	install -v -d ${D}/etc/NetworkManager/system-connections/
+	install -v -m 600 ${WORKDIR}/Modem.nmconnection	${D}/etc/NetworkManager/system-connections/Modem.nmconnection
+
+	install -v -d ${D}/etc/
+	install -v -m 644 ${WORKDIR}/fw_env.config ${D}/etc/
 
 	# add hooks for initramfs
 	# HOOKS=${D}/etc/initramfs-tools/hooks
