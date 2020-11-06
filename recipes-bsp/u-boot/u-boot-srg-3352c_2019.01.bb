@@ -60,6 +60,6 @@ do_prepare_build_append() {
         ${S}/debian/u-boot-${MACHINE}.install
 
     # fixed version
-    echo "-SRG-3352C-2020.10" > ${B}/.scmversion
-    echo "-SRG-3352C-2020.10" > ${S}/.scmversion
+    echo "-SRG-3352C-2020.11" > ${B}/.scmversion
+    echo "-SRG-3352C-2020.11" > ${S}/.scmversion
 }
