@@ -47,6 +47,7 @@ UBOOT_GIT_URI = "git://git.ti.com/ti-u-boot/ti-u-boot.git"
 UBOOT_GIT_PROTOCOL = "git"
 SRC_URI += "${UBOOT_GIT_URI};protocol=${UBOOT_GIT_PROTOCOL};branch=${BRANCH}"
 SRC_URI += "file://0001-add-support-new-board-srg3352.patch"
+SRC_URI += "file://0002-disable-u-boot-debug-output.patch"
 SRC_URI += "file://srg-3352c-uboot-build-rules"
 
 do_prepare_build_append() {

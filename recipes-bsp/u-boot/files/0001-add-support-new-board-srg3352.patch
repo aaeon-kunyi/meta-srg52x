@@ -1,7 +1,7 @@
 From 0ece03ea0a28c589380ace45e766b16e5f8aa29b Mon Sep 17 00:00:00 2001
 From: KunYi <kunyi.chen@gmail.com>
 Date: Thu, 29 Oct 2020 20:20:49 +0800
-Subject: [PATCH] add support new board srg3352
+Subject: [PATCH 1/2] add support new board srg3352
 
 the board support AAEON SRG-3352x IoT Gateway
 ---
