@@ -50,9 +50,19 @@ currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
 
     # reminds: **/dev/sdX**, please double confirm which is your SD card.
 
+6. Flash OS image into EMMC
+   
+   A. follow step 5. to make a bootable SD card
+   B. insert the SD card to want flash device
+   C. power on the device and login
+   D. run the below command for flash OS image into EMMC until the system tune off ::
+
+    /opt/scripts/tools/srg3352c_emmc_flasher.sh
+    
+   E. remove the SD card, reset or run power cycle to check boot from EMMC
+
 Known issues:
 -------------
-* currently only support booting from SD card
 * WIFI/Bluetooth maybe failed when first time boot
 
 License:
