@@ -16,4 +16,9 @@ part --ondisk mmcblk0 --fstype ext4 --label reserved --align 1024 --size 50M
 #part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active --extra-space 128M
 part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active
 
-bootloader --append "rootwait console=ttyS0,115200"
+#
+# check isar/meta/scripts/lib/wic/plugins/source/rootfs-u-boot.py
+# due our u-boot/u-boot-script not need this
+#
+#bootloader --append "rootwait console=ttyS0,115200"
+#
