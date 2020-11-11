@@ -15,7 +15,12 @@ ISAR_RELEASE_CMD = "git -C ${LAYERDIR_srg52-buster} describe --tags --dirty --al
 DESCRIPTION = "SRG-3352x Debian Buster image"
 
 IMAGE_INSTALL += "customizations"
-# IMAGE_INSTALL += "initramfs-fsck-hook-ext4"
+
+# install srg52 customizations package
+IMAGE_INSTALL += "srg52-customizations"
+
+# install am335x power management firmware package
+IMAGE_INSTALL += "am335x-pm"
 
 # some script need this package
 IMAGE_PREINSTALL += "bsdmainutils rsync"

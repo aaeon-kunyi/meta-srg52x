@@ -51,8 +51,8 @@ local_conf_header:
     IMAGE_PREINSTALL += "python3 python3-pip"
     IMAGE_PREINSTALL += "lshw usbutils cpufrequtils gdisk"
     IMAGE_PREINSTALL += "libiio-dev libiio-utils libiio0 python3-libiio"
-    IMAGE_PREINSTALL += "firmware-linux firmware-linux-free firmware-linux-nonfree firmware-misc-nonfree"
-    IMAGE_PREINSTALL += "firmware-atheros firmware-brcm80211 firmware-ralink firmware-realtek"
+    # IMAGE_PREINSTALL += "firmware-linux firmware-linux-free firmware-linux-nonfree firmware-misc-nonfree"
+    # IMAGE_PREINSTALL += "firmware-atheros firmware-brcm80211 firmware-ralink firmware-realtek"
     IMAGE_PREINSTALL += "libmodbus-dev libmodbus5  libmosquitto-dev libmosquitto1"
     # from cip-core security
     IMAGE_PREINSTALL += "openssl libssl1.1 \
@@ -80,7 +80,7 @@ local_conf_header:
                           liblmdb0 liblwres161 libprotobuf-c1   \
                         "
     # for wireless tools"
-    IMAGE_PREINSTALL += "libiw30 wireless-tools"
+    IMAGE_PREINSTALL += "libiw30 wireless-tools iw crda iptables libip6tc0 libiptc0"
     # IMAGE_PREINSTALL += "hostapd"
 
   image_type: |

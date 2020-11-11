@@ -1,0 +1,51 @@
+# This package for TI WL18xx firmware package
+#
+# Copyright (C) KunYi, 2020
+#
+# SPDX-License-Identifier: MIT
+
+#!/bin/sh
+set -x
+PREREQ=""
+
+prereqs()
+{
+     echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+     prereqs
+     exit 0
+     ;;
+esac
+
+. /usr/share/initramfs-tools/scripts/functions
+. /usr/share/initramfs-tools/hook-functions
+
+if [ -d /lib/firmware/ ] ; then
+    unset check
+    check=$(ls /lib/firmware/ | grep wl18xx-fw-4.bin | head -n 1)
+    if [ ! "x${check}" = "x" ] ; then
+        mkdir -p $DESTDIR/lib/firmware/ti-connectivity/
+        if [ -f /lib/firmware/ti-connectivity/wl18xx-fw-4.bin ] ; then
+            cp -a /lib/firmware/ti-connectivity/wl18xx-fw-4.bin  ${DESTDIR}/lib/firmware/ti-connectivity/
+        fi
+        if [ -f /lib/firmware/ti-connectivity/wl18xx-conf.bin ] ; then
+            cp -a /lib/firmware/ti-connectivity/wl18xx-conf.bin  ${DESTDIR}/lib/firmware/ti-connectivity/
+        fi
+        if [ -f /lib/firmware/ti-connectivity/wl1271-nvs.bin ] ; then
+            cp -a /lib/firmware/ti-connectivity/wl1271-nvs.bin  ${DESTDIR}/lib/firmware/ti-connectivity/
+        fi
+
+        mkdir -p $DESTDIR/lib/firmware/
+        if [ -f /lib/firmware/regulatory.db ] ; then
+            cp -a /lib/firmware/regulatory.db  ${DESTDIR}/lib/firmware/
+        fi
+        if [ -f /lib/firmware/regulatory.db.p7s ] ; then
+            cp -a /lib/firmware/regulatory.db.p7s  ${DESTDIR}/lib/firmware/
+        fi
+    fi
+fi
+
+exit 0

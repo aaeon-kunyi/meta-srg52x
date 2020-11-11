@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# SRG-335x Debian Buster customizations
+#
+# Copyright (c) LYD/AAEON, 2020
+#
+# Authors:
+#  KunYi <kunyi.chen@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
+PREREQ=""
+
+prereqs()
+{
+     echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+     prereqs
+     exit 0
+     ;;
+esac
+
+. /usr/share/initramfs-tools/scripts/functions
+. /usr/share/initramfs-tools/hook-functions
+
+if [ ! -x /sbin/e2fsck ]; then
+	echo "Warning: couldn't find /sbin/e2fsck!"
+	exit 0
+fi
+
+if [ ! -x /sbin/fsck ]; then
+	echo "Warning: couldn't find /sbin/fsck!"
+	exit 0
+fi
+
+copy_exec /sbin/e2fsck
+copy_exec /sbin/fsck
+copy_exec /sbin/logsave
+
+if prog="$(command -v fsck.ext4 )"; then
+  copy_exec "$prog"
+else
+  echo "Warning: /sbin/fsck.ext4 doesn't exist, can't install to initramfs, ignoring."
+fi
+if prog="$(command -v fsck.ext3 )"; then
+  copy_exec "$prog"
+else
+  echo "Warning: /sbin/fsck.ext3 doesn't exist, can't install to initramfs, ignoring."
+fi
+if prog="$(command -v fsck.ext2 )"; then
+  copy_exec "$prog"
+else
+  echo "Warning: /sbin/fsck.ext2 doesn't exist, can't install to initramfs, ignoring."
+fi

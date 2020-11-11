@@ -27,6 +27,7 @@ SRC_URI = "                                             \
     file://srg52c-bt-en                                 \
     file://srg52c-bluetooth.service                     \
     file://wl18xx-bts-firmware.hook                     \
+    file://wl18xx-wlan-firmware.hook                    \
     "
 
 DEBIAN_DEPENDS = " \
@@ -65,7 +66,8 @@ do_install() {
     # add hooks for initramfs
     HOOKS=${D}/etc/initramfs-tools/hooks
     install -m 0755 -d ${HOOKS}
-    install -m 0740 ${WORKDIR}/wl18xx-bts-firmware.hook ${HOOKS}/wl18xx-bts-firmware.hook
+    # install -m 0740 ${WORKDIR}/wl18xx-bts-firmware.hook ${HOOKS}/wl18xx-bts-firmware.hook
+    install -m 0740 ${WORKDIR}/wl18xx-wlan-firmware.hook ${HOOKS}/wl18xx-wlan-firmware.hook
 }
 
 addtask do_install after do_transform_template
