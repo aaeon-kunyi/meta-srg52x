@@ -63,7 +63,7 @@ currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
 
 Known issues:
 -------------
-* WIFI/Bluetooth maybe failed when first time boot
+
 
 License:
 --------
