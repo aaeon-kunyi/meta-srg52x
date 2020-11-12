@@ -18,6 +18,8 @@ SRC_URI = " \
 	file://initramfs.fsck.hook	\
 	"
 
+DEBIAN_DEPENDS += "hostapd"
+
 do_install() {
 
 	# add hooks for initramfs
