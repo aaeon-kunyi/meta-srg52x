@@ -150,8 +150,10 @@ fdisk_toggle_boot () {
 	flush_cache
 }
 
-format_root () {
-	mkfs.ext4 ${destination}p2 -L rootfs
+format_partitions () {
+	mkfs.ext4 -qF ${destination}p1 -L reserved
+	mkfs.ext4 -qF ${destination}p2 -L rootfs
+	mkfs.ext4 -qF ${destination}p3 -L data
 	flush_cache
 }
 
@@ -212,7 +214,22 @@ partition_drive () {
 	# <<<----------------------------------------------------------
 
 	flush_cache
-	format_root
+	format_partitions
+}
+
+generation_fstab () {
+	echo "Generating: /etc/fstab"
+	echo "# /etc/fstab: static file system information." > /tmp/rootfs/etc/fstab
+	echo "#" >> /tmp/rootfs/etc/fstab
+	echo "#${root_uuid}		/			ext4		noatime,errors=remount-ro			0 1" >> /tmp/rootfs/etc/fstab
+	echo "proc			/proc			proc		defaults					0 0" >> /tmp/rootfs/etc/fstab
+	echo "sysfs			/sys			sysfs		rw,nosuid,nodev,noexec,relatime			0 0" >> /tmp/rootfs/etc/fstab
+	echo "devpts			/dev/pts		devpts		rw,nosuid,noexec,relatime,mode=0620,gid=5	0 0" >> /tmp/rootfs/etc/fstab
+	echo "tmpfs			/run			tmpfs		mode=0755,nodev,nosuid,strictatime		0 0" >> /tmp/rootfs/etc/fstab
+	echo "tmpfs			/var/volatile		tmpfs		defaults					0 0" >> /tmp/rootfs/etc/fstab
+	echo "tmpfs			/dev/shm		tmpfs		defaults					0 0" >> /tmp/rootfs/etc/fstab
+	echo "debugfs			/sys/kernel/debug	debugfs		defaults					0 0" >> /tmp/rootfs/etc/fstab
+	cat /tmp/rootfs/etc/fstab
 }
 
 copy_boot () {
@@ -258,13 +275,8 @@ copy_rootfs () {
 	else
 		root_uuid="${destination}p2"
 	fi
+	generation_fstab
 
-	echo "Generating: /etc/fstab"
-	echo "# /etc/fstab: static file system information." > /tmp/rootfs/etc/fstab
-	echo "#" >> /tmp/rootfs/etc/fstab
-	echo "${root_uuid}  /  ext4  noatime,errors=remount-ro  0  1" >> /tmp/rootfs/etc/fstab
-	echo "debugfs  /sys/kernel/debug  debugfs  defaults  0  0" >> /tmp/rootfs/etc/fstab
-	cat /tmp/rootfs/etc/fstab
 	update_boot_script
 
 	flush_cache
@@ -309,17 +321,13 @@ update_boot_script() {
 	echo "${SCRIPT_PREPEND}" >> ${BOOT_CMD}
 	# KERNEL_ARGS definition in /etc/default/u-boot-script
 	# echo "setenv bootargs ${KERNEL_ARGS}" >> ${BOOT_CMD}
+	echo "run finduuid" >> ${BOOT_CMD}
+	echo "setenv bootargs console=\${console} \${optargs} root=PARTUUID=\${uuid} rw rootfstype=\${mmcrootfstype}" >> ${BOOT_CMD}
 	echo "setenv distro_bootpart 2" >> ${BOOT_CMD}
-
 	echo "load \${devtype} \${devnum}:\${distro_bootpart} \${fdt_addr_r}" \
 		"/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
-
 	echo "load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r}" \
 		"/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
-	# >>> debugging
-	echo "setenv bootfile ${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
-	echo "setenv fdtfile ../usr/lib/linux-image-${KERNEL_VERSION}/am335x-srg3352c.dtb" >> ${BOOT_CMD}
-	# <<< debugging
 
 	case "${NO_INITRD}" in
 	yes|1)
@@ -348,9 +356,6 @@ update_boot_script() {
 			echo "fdt apply \${overlay_addr_r}" >> ${BOOT_CMD}
 		done
 	fi
-
-	# for fixup bootargs
-	echo "run args_mmc" >> ${BOOT_CMD}
 
 	echo "${BOOT} \${kernel_addr_r} ${INITRD_ADDR} \${fdt_addr_r}" >> ${BOOT_CMD}
 
