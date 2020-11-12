@@ -32,6 +32,11 @@ run_hciattach () {
 			echo ${bt_enable} > /sys/class/leds/wl18xx_bt_en/brightness || true
 			sleep 4
 			${hciattach_bin} ${bt_port} ${bt_settings} || true
+			sleep 4
+			if [ -e /sys/class/bluetooth/hci0 ] ; then
+				return 0
+			fi
+			return 2 # failed
 		fi
 	fi
 }
