@@ -37,22 +37,16 @@ if [ ! -x /sbin/fsck ]; then
 	exit 0
 fi
 
+fsck_types="ext4 ext3 ext2"
+
 copy_exec /sbin/e2fsck
 copy_exec /sbin/fsck
 copy_exec /sbin/logsave
 
-if prog="$(command -v fsck.ext4 )"; then
-  copy_exec "$prog"
-else
-  echo "Warning: /sbin/fsck.ext4 doesn't exist, can't install to initramfs, ignoring."
-fi
-if prog="$(command -v fsck.ext3 )"; then
-  copy_exec "$prog"
-else
-  echo "Warning: /sbin/fsck.ext3 doesn't exist, can't install to initramfs, ignoring."
-fi
-if prog="$(command -v fsck.ext2 )"; then
-  copy_exec "$prog"
-else
-  echo "Warning: /sbin/fsck.ext2 doesn't exist, can't install to initramfs, ignoring."
-fi
+for type in $fsck_types; do
+	if prog="$(command -v "fsck.${type}")"; then
+		copy_exec "$prog"
+	else
+		echo "W: /sbin/fsck.${type} doesn't exist, can't install to initramfs" >&2
+	fi
+done
