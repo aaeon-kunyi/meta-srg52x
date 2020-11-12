@@ -1,6 +1,6 @@
 [Unit]
 Description=SRG-3352C WL18xx wlan0 Service
-After=local-fs.target
+After=local-fs.target, srg52c-bluetooth.service
 
 [Service]
 ExecStart=/usr/bin/srg52c-wl18xx-wlan0
