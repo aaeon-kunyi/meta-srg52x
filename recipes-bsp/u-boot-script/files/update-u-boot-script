@@ -26,13 +26,13 @@ BOOT="bootz"
 echo "${SCRIPT_PREPEND}" >> ${BOOT_CMD}
 
 # KERNEL_ARGS definition in /etc/default/u-boot-script
+echo "setenv bootpart 0:\${distro_bootpart} " >> ${BOOT_CMD}
 echo "run finduuid" >> ${BOOT_CMD}
 echo "setenv bootargs console=\${console} \${optargs} root=PARTUUID=\${uuid} rw rootfstype=\${mmcrootfstype}" >> ${BOOT_CMD}
-echo "setenv bootpart 0:\${distro_bootpart} " >> ${BOOT_CMD}
-echo "load \${devtype} \${devnum}:${ROOT_PARTITION} \${fdt_addr_r}" \
-	"/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
+echo "load \${devtype} \${devnum}:\${distro_bootpart} \${fdt_addr_r}" \
+	 "/dtbs/\${fdtfile}" >> ${BOOT_CMD}
 echo "load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r}" \
-	"/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
+	"/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
 
 case "${NO_INITRD}" in
 yes|1)
@@ -40,7 +40,7 @@ yes|1)
 	;;
 *)
 	echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
-		"\${ramdisk_addr_r} /boot/initrd.img-${KERNEL_VERSION}" \
+		"\${ramdisk_addr_r} /initrd.img-${KERNEL_VERSION}" \
 		>> ${BOOT_CMD}
 	INITRD_ADDR="\${ramdisk_addr_r}:\${filesize}"
 	;;
