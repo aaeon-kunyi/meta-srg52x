@@ -141,11 +141,15 @@ update_boot_files () {
 }
 
 format_partitions () {
+	echo "format partitions"
+	flush_cache
+	sync
 	mkfs.ext4 -qF ${destination}p1 -L reserved
 	mkfs.ext4 -qF ${destination}p2 -L boot
 	mkfs.ext4 -qF ${destination}p3 -L rootfs
 	mkfs.ext4 -qF ${destination}p4 -L data
 	flush_cache
+	sync
 }
 
 partition_drive () {
@@ -195,14 +199,22 @@ partition_drive () {
 	# <<<----------------------------------------------------------
 	# >>>--------------- for GPT/EFI ------------------------------
 	LC_ALL=C sgdisk --zap-all --clear "${destination}" > /dev/null 2>&1 || true
+	sync
+	flush_cache
+	dd if=${destination} of=/dev/null bs=1M count=4 > /dev/null 2>&1 || true
+	sync
+	flush_cache
 	LC_ALL=C sgdisk -n 1:8192:+64MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}" > /dev/null 2>&1 || true
 	LC_ALL=C sgdisk -n 2::+64MiB -t 2:8300 -c 2:"boot" -A 2:set:2 -u 2:BC13C2FF-59E6-4262-A352-B275FD6F7172 "${destination}" > /dev/null 2>&1 || true
 	LC_ALL=C sgdisk -n 3::+2GiB -t 3:8300 -c 3:"rootfs" -u 3:69DAD710-2CE4-4E3C-B16C-21A1DD49ABED3 "${destination}" > /dev/null 2>&1 || true
 	LC_ALL=C sgdisk -n 4:: -t 4:8300 -c 4:"data" -u 4:933AC7E1-2EB4-4F13-B844-0E14E2AEF9915 "${destination}" > /dev/null 2>&1 || true
+	sync
+	flush_cache
+	dd if=${destination} of=/dev/null bs=1M count=4 > /dev/null 2>&1 || true
 	# for boot flags, bootloader need this
 	# LC_ALL=C sgdisk -A 2:set:2 "${destination}"
 	# <<<----------------------------------------------------------
-
+	sync
 	flush_cache
 	format_partitions
 }
