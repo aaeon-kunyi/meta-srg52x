@@ -12,4 +12,14 @@
 # disable hostapd, default not enable
 systemctl disable hostapd.service || true
 
+MODULES=/etc/initramfs-tools/modules
+if [ -e ${MODULES} ]; then
+	if ! grep -q "^overlay" ${MODULES}; then
+		echo overlay >> ${MODULES}
+	fi
+else
+	echo overlay > ${MODULES}
+	chmod 644 ${MODULES}
+fi
+
 update-initramfs -u

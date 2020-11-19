@@ -1,4 +1,4 @@
-From d76fc521c39075088b5aa7b886784f5fb8fc7997 Mon Sep 17 00:00:00 2001
+From 2c570404d384672363056362f2b94c320dc51fc4 Mon Sep 17 00:00:00 2001
 From: KunYi <kunyi.chen@gmail.com>
 Date: Fri, 6 Nov 2020 18:01:23 +0800
 Subject: [PATCH 2/2] disable u-boot debug output
@@ -8,7 +8,7 @@ Subject: [PATCH 2/2] disable u-boot debug output
  1 file changed, 2 insertions(+), 11 deletions(-)
 
 diff --git a/include/configs/srg3352.h b/include/configs/srg3352.h
-index 55dc4b76dc..0024ca4968 100644
+index cd2ab2e0ac..3f83193c27 100644
 --- a/include/configs/srg3352.h
 +++ b/include/configs/srg3352.h
 @@ -121,7 +121,6 @@
@@ -27,16 +27,17 @@ index 55dc4b76dc..0024ca4968 100644
  		"for target in ${boot_targets}; do "                      \
  			"run bootcmd_${target}; "                         \
  		"done\0"
-@@ -157,16 +155,13 @@
+@@ -157,17 +155,14 @@
  	"mmcdev=0\0" \
  	"mmcrootfstype=ext4 rootwait\0" \
  	"finduuid=" \
 -		"echo debug -- run finduuid; " \
 -		"mmc dev ${devnum}; mmc part;"	\
--		"part uuid mmc ${devnum}:${distro_bootpart} uuid;" \
--		"echo debug -- bootpart:${bootpart} uuid: ${uuid}\0" \
-+		"mmc dev ${devnum}; "	\
-+		"part uuid mmc ${devnum}:${distro_bootpart} uuid; \0" \
++		"mmc dev ${devnum};"	\
+ 		"setexpr rootpart ${distro_bootpart} + 1;" \
+-		"part uuid mmc ${devnum}:${rootpart} uuid;" \
+-		"echo debug -- rootpart:${rootpart} uuid: ${uuid}\0" \
++		"part uuid mmc ${devnum}:${rootpart} uuid;\0" \
  	"args_mmc=run finduuid;setenv bootargs console=${console} " \
  		"${optargs} " \
  		"root=PARTUUID=${uuid} rw " \
@@ -46,7 +47,7 @@ index 55dc4b76dc..0024ca4968 100644
  		"load mmc ${mmcdev} ${loadaddr} ${bootdir}/boot.scr\0" \
  	"bootscript=echo Running bootscript from mmc${mmcdev} ...; " \
  		"source ${loadaddr}\0" \
-@@ -174,12 +169,10 @@
+@@ -175,12 +170,10 @@
  	"importbootenv=echo Importing environment from mmc${mmcdev} ...; " \
  		"env import -t ${loadaddr} ${filesize}\0" \
  	"loadbootenv=" \
@@ -59,7 +60,7 @@ index 55dc4b76dc..0024ca4968 100644
  		"mmc dev ${mmcdev}; " \
  		"if mmc rescan; then " \
  			"echo SD/MMC found on device ${mmcdev};" \
-@@ -197,7 +190,6 @@
+@@ -198,7 +191,6 @@
  			"fi;" \
  		"fi;\0" \
  	"mmcloados= " \
@@ -67,7 +68,7 @@ index 55dc4b76dc..0024ca4968 100644
  		"run args_mmc; " \
  		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
  			"if run loadfdt; then " \
-@@ -213,7 +205,6 @@
+@@ -214,7 +206,6 @@
  			"bootz; " \
  		"fi;\0" \
  	"mmcboot=" \

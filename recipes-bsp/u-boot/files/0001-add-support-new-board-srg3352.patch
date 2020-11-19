@@ -1,4 +1,4 @@
-From 0ece03ea0a28c589380ace45e766b16e5f8aa29b Mon Sep 17 00:00:00 2001
+From bd73e26813a43e515e3e72ef7ee7057a777c3538 Mon Sep 17 00:00:00 2001
 From: KunYi <kunyi.chen@gmail.com>
 Date: Thu, 29 Oct 2020 20:20:49 +0800
 Subject: [PATCH 1/2] add support new board srg3352
@@ -20,8 +20,8 @@ the board support AAEON SRG-3352x IoT Gateway
  board/aaeon/srg3352/mux.c          | 201 +++++++++++
  board/aaeon/srg3352/u-boot.lds     | 165 +++++++++
  configs/srg3352_defconfig          |  73 ++++
- include/configs/srg3352.h          | 364 +++++++++++++++++++
- 16 files changed, 2152 insertions(+)
+ include/configs/srg3352.h          | 369 ++++++++++++++++++++
+ 16 files changed, 2157 insertions(+)
  create mode 100644 arch/arm/dts/srg3352.dts
  create mode 100644 board/aaeon/srg3352/Kconfig
  create mode 100644 board/aaeon/srg3352/MAINTAINERS
@@ -1931,10 +1931,10 @@ index 0000000000..0a680f4c07
 +CONFIG_LZO=y
 diff --git a/include/configs/srg3352.h b/include/configs/srg3352.h
 new file mode 100644
-index 0000000000..55dc4b76dc
+index 0000000000..cd2ab2e0ac
 --- /dev/null
 +++ b/include/configs/srg3352.h
-@@ -0,0 +1,364 @@
+@@ -0,0 +1,369 @@
 +/*
 + * am335x_evm.h
 + *
@@ -2096,8 +2096,9 @@ index 0000000000..55dc4b76dc
 +	"finduuid=" \
 +		"echo debug -- run finduuid; " \
 +		"mmc dev ${devnum}; mmc part;"	\
-+		"part uuid mmc ${devnum}:${distro_bootpart} uuid;" \
-+		"echo debug -- bootpart:${bootpart} uuid: ${uuid}\0" \
++		"setexpr rootpart ${distro_bootpart} + 1;" \
++		"part uuid mmc ${devnum}:${rootpart} uuid;" \
++		"echo debug -- rootpart:${rootpart} uuid: ${uuid}\0" \
 +	"args_mmc=run finduuid;setenv bootargs console=${console} " \
 +		"${optargs} " \
 +		"root=PARTUUID=${uuid} rw " \
@@ -2274,6 +2275,10 @@ index 0000000000..55dc4b76dc
 +	DFU_ALT_INFO_EMMC \
 +	DFU_ALT_INFO_MMC \
 +	DFU_ALT_INFO_RAM
++#endif
++
++#ifndef CONFIG_SPL_BUILD
++#define CONFIG_CMD_SETEXPR
 +#endif
 +
 +#if defined(CONFIG_EMMC_BOOT)
