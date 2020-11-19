@@ -7,7 +7,9 @@ inherit dpkg
 
 DESCRIPTION = "SRG-3352x system configuration tool"
 MAINTAINER = "kunyi <kunyi.chen@gmail.com>"
+
 DEBIAN_DEPENDS = "cmake"
+DEBIAN_BUILD_DEPENDS = "cmake"
 
 SRC_URI = "file://src"
 
