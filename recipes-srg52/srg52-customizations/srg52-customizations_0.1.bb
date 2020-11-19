@@ -18,6 +18,7 @@ SRC_URI = " \
 	file://initramfs.fsck.hook	\
 	file://rootoverlay.sh		\
 	file://scripts/tools		\
+	file://automount/		\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -41,6 +42,21 @@ do_install() {
 	install -v -d ${HOOKS}
 	install -m 0755 -d ${HOOKS}
 	install -m 0740 ${WORKDIR}/initramfs.fsck.hook	${HOOKS}/fsck.hook
+
+	# automount
+	# install -v -d ${D}/etc/udev/rules.d/
+	# install -m 644 ${WORKDIR}/automount/automount.rules ${D}/etc/udev/rules.d
+	# install -v -d ${D}/etc/udev/scripts/
+	# install -m 0755 -d ${D}/etc/udev/scripts/
+	# install -m 755 ${WORKDIR}/automount/srg52-automount.sh ${D}/etc/udev/scripts
+	install -v -d ${D}/lib/udev/rules.d/
+	install -m 644 ${WORKDIR}/automount/media-automount.rules ${D}/lib/udev/rules.d/99-media-automount.rules
+
+	install -v -d ${D}/lib/systemd/system/
+	install -m 644 ${WORKDIR}/automount/media-automount@.service ${D}/lib/systemd/system/
+	install -v -d ${D}/usr/bin
+	install -m 755 ${WORKDIR}/automount/umount_dmenu	${D}/usr/bin/umount_dmenu
+	install -m 755 ${WORKDIR}/automount/media-automount	${D}/usr/bin/media-automount
 }
 
 addtask do_install after do_transform_template

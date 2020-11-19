@@ -1,0 +1,119 @@
+#!/bin/bash
+#$1 = <dev>
+
+# Directory to use for mounting the devices
+mdir=/media/
+# Default options to use for mounting
+mopts='errors=remount-ro,relatime,utf8,user'
+
+[[ $EUID != 0 ]] && {
+	echo "This tool requires root permissions"
+	exit 1
+}
+
+shopt -s nullglob
+
+log() {
+	logger -st "media-automount" "$*"
+}
+
+if ! [ "$1" ]
+then
+	log "missing arguments! a device name must be provided"
+	exit 1
+else
+	dev=/dev/${1##*/}
+fi
+
+if [[ $dev == "/dev/mmcblk1"* ]]
+then
+	log "$dev: ignore EMMC device/partitions."
+	exit 0
+fi
+
+unset root_drive
+root_drive=$(LC_ALL=C lsblk -l | grep "/" | awk '{print $1}')
+if [[ $root_drive == "mmcblk0"* ]]
+then
+	root_drive=/dev/mmcblk0
+	if [[ $dev == "${root_drive}"* ]]
+	then
+		log "$dev: ignore boot device"
+		exit 0
+	fi
+fi
+
+# Check if the device exists, if not but mounted, umount it
+if ! [ -b $dev ]
+then
+	if grep /etc/mtab -qe "^$dev"
+	then
+		log "$dev device removed, umounting and cleaning /media"
+		if umount "$dev"
+		then
+			exitcode=0
+		else
+			log "Error umounting $dev errcode:$?"
+			exitcode=$?
+		fi
+	else
+		log "device doesn't exist anymore or is not a block device: $dev"
+		exitcode=1
+	fi
+
+	# cleanup
+	for dir in "$mdir"/*
+	do
+	[ -d "$dir" ] && ! mountpoint -q "$dir" && rmdir "$dir"
+	done
+	exit $exitcode
+fi
+
+# Load additional info for the block device
+eval $(blkid -po export $dev)
+
+# Check /etc/fstab for an entry corresponding to the device
+[ "$UUID" ] && fstab=$(grep /etc/fstab -e "${UUID/\-/\\\-}") || \
+[ "$LABEL" ] && fstab=$(grep /etc/fstab -e "${LABEL/\-/\\\-}") || \
+fstab=$(grep /etc/fstab -e "^[ \t]*$dev[ \t]")
+
+# Don't manage devices that are already in fstab
+if [ "$fstab" ]
+then
+	log "$dev already in /etc/fstab, automount won't manage it: ${fstab/[ \t][ \t]/ }"
+	exit 1
+fi
+
+# directory name
+dir="${mdir}/${LABEL:-${dev##*/}}"
+
+case $TYPE in
+	vfat|fat|exfat)
+	mopts="$mopts,flush,gid=100,dmask=000,fmask=111"
+	;;
+	ntfs)
+		mopts="$mopts,flush"
+		hash ntfs-3g && mtype="ntfs-3g"
+	;;
+	ext4|ext3|ext2)
+		mopts="errors=remount-ro,relatime,sync"
+	;;
+	*)
+		mopts="$mopts,sync"
+	;;
+esac
+
+log "mounting device $dev in $dir"
+mkdir -p "$dir"
+if mount -t "${mtype:-auto}" -o "$mopts" "$dev" "$dir"
+then
+	# Notify
+	username="$(ps au | awk '$11 ~ /^xinit/ { print $1; exit }')"
+	[[ "$username" ]] && DISPLAY=:0 runuser -u "$username" xdg-open "$dir"
+	log "Device successfully mounted: $dir"
+	exit 0
+else
+	log "Mount error: $?"
+	rmdir "$dir"
+	exit 0
+fi

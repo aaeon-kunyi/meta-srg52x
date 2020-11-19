@@ -182,13 +182,13 @@ partition_drive () {
 	# p4: another for user data
 	#
 	# except the below configuration
-	# -------------------------------------------------------------
-	# Device         Boot   Start      End  Sectors  Size Id Type
-	# /dev/mmcblk1p1         8192   139263   131072   64M 83 Linux
-	# /dev/mmcblk1p2 *     139264   270335   131072   64M 83 Linux
-	# /dev/mmcblk1p3       270336  4464639  4194304    2G 83 Linux
-	# /dev/mmcblk1p3      4464640 15269887 10805248  5.2G 83 Linux
-	# -------------------------------------------------------------
+	# --------------------------------------------------------------------------------------------
+	# Device	 Boot	Start		End		Sectors		Size	Id	Type
+	# /dev/mmcblk1p1	   8192		  139263	   131072	 64M	83	Linux
+	# /dev/mmcblk1p2 *	 139264		  270335	   131072	 64M	83	Linux
+	# /dev/mmcblk1p3	 270336		 4464639	  4194304	  2G	83	Linux
+	# /dev/mmcblk1p3	4464640		15269887	 10805248	5.2G	83	Linux
+	# --------------------------------------------------------------------------------------------
 	# >>>--------------- for MBR ----------------------------------
 	#LC_ALL=C sfdisk --force "${destination}" <<-__EOF__
 	#	8192,	64M, ,
@@ -201,16 +201,27 @@ partition_drive () {
 	LC_ALL=C sgdisk --zap-all --clear "${destination}" > /dev/null 2>&1 || true
 	sync
 	flush_cache
-	dd if=${destination} of=/dev/null bs=1M count=4 > /dev/null 2>&1 || true
+	dd if=${destination} of=/dev/null bs=1M count=1 > /dev/null 2>&1 || true
+
+	LC_ALL=C sgdisk -n 1:8192:+64MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}" > /dev/null 2>&1 || true
 	sync
 	flush_cache
-	LC_ALL=C sgdisk -n 1:8192:+64MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}" > /dev/null 2>&1 || true
+	dd if=${destination} of=/dev/null bs=1M count=1 > /dev/null 2>&1 || true
+
 	LC_ALL=C sgdisk -n 2::+64MiB -t 2:8300 -c 2:"boot" -A 2:set:2 -u 2:BC13C2FF-59E6-4262-A352-B275FD6F7172 "${destination}" > /dev/null 2>&1 || true
+	sync
+	flush_cache
+	dd if=${destination} of=/dev/null bs=1M count=1 > /dev/null 2>&1 || true
+
 	LC_ALL=C sgdisk -n 3::+2GiB -t 3:8300 -c 3:"rootfs" -u 3:69DAD710-2CE4-4E3C-B16C-21A1DD49ABED3 "${destination}" > /dev/null 2>&1 || true
+	sync
+	flush_cache
+	dd if=${destination} of=/dev/null bs=1M count=1 > /dev/null 2>&1 || true
+
 	LC_ALL=C sgdisk -n 4:: -t 4:8300 -c 4:"data" -u 4:933AC7E1-2EB4-4F13-B844-0E14E2AEF9915 "${destination}" > /dev/null 2>&1 || true
 	sync
 	flush_cache
-	dd if=${destination} of=/dev/null bs=1M count=4 > /dev/null 2>&1 || true
+	dd if=${destination} of=/dev/null bs=1M count=1 > /dev/null 2>&1 || true
 	# for boot flags, bootloader need this
 	# LC_ALL=C sgdisk -A 2:set:2 "${destination}"
 	# <<<----------------------------------------------------------
@@ -242,7 +253,7 @@ copy_boot () {
 }
 
 copy_rootfs () {
-	local src_boot=${source}p2
+	local src_boot=${source}p1
 	local dst_reserved=${destination}p1
 	local dst_boot=${destination}p2
 	local dst_root=${destination}p3
@@ -258,7 +269,6 @@ copy_rootfs () {
 
 	mkdir -p /tmp/rootfs/reserved/ || true
 	mount  ${dst_reserved} /tmp/rootfs/reserved -o async,noatime
-
 
 	echo "rsync: / -> /tmp/rootfs/"
 	rsync -aAX /* /tmp/rootfs/ --exclude={/dev/*,/proc/*,/sys/*,/tmp/*,/run/*,/mnt/*,/media/*,/lost+found,/reserved/*,/boot/*,/lib/modules/*} || write_failure

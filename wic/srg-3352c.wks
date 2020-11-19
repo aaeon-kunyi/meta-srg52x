@@ -12,13 +12,6 @@
 part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/MLO" --no-table --align 128
 part --source rawcopy --sourceparams "file=/usr/lib/u-boot/srg-3352c/u-boot.img" --no-table --align 384
 
-part --ondisk mmcblk0 --fstype ext4 --label reserved --align 1024 --use-uuid --size 64M --extra-space 0
 part /boot --source bootpart --ondisk mmcblk0 --fstype ext4 --label boot --align 1024 --use-uuid --size 64M --extra-space 0 --active
-#part / --source rootfs-u-boot --ondisk mmcblk0 --fstype ext4 --label platform --align 1024 --active --extra-space 128M
-part / --source rootfs --ondisk mmcblk0 --fstype ext4 --label rootfs --use-uuid --align 1024
-#
-# check isar/meta/scripts/lib/wic/plugins/source/rootfs-u-boot.py
-# due our u-boot/u-boot-script not need this
-#
-#bootloader --append "rootwait console=ttyS0,115200"
-#
+part / --source rootfs --ondisk mmcblk0 --fstype ext4 --label rootfs --use-uuid --align 1024 --extra-space 128M
+
