@@ -30,27 +30,27 @@ if ! id | grep -q root; then
 	exit
 fi
 
-unset boot_drive
-boot_drive=$(LC_ALL=C lsblk -l | grep "/" | awk '{print $1}')
+unset root_drive
+root_drive=$(LC_ALL=C lsblk -l | grep "/" | awk '{print $1}')
 
-if [ "x${boot_drive}" = "x" ] ; then
+if [[ "x${root_drive}" = "x" ]] ; then
 	echo "Error: script halting, system unrecognized..."
 	exit 1
 fi
 
-if [ "x${boot_drive}" = "xmmcblk1p2" ] ; then
+if [[ "x${root_drive}" = "xmmcblk1p"* ]] ; then
 	echo "Error: script halting, only support from SD card to eMMC..."
 	exit 1
 fi
 
-if [ "x${boot_drive}" = "xmmcblk0p2" ] ; then
+if [[ "x${root_drive}" == "xmmcblk0p"* ]] ; then
 	source="/dev/mmcblk0"
 	destination="/dev/mmcblk1"
 fi
 
-echo "-------------------------"
-echo "boot drive: ${boot_drive}"
-echo "-------------------------"
+echo "--------------------------------"
+echo "rootfs drive: ${root_drive}"
+echo "--------------------------------"
 
 flush_cache () {
 	sync
@@ -71,15 +71,17 @@ write_failure () {
 	echo "-----------------------------"
 	flush_cache
 	umount ${destination}p1 || true
-	umount ${destination}p2 || true	
+	umount ${destination}p2 || true
+	umount ${destination}p3 || true
+	umount ${destination}p4 || true
 	exit
 }
 
 check_running_system () {
-	echo "-----------------------------"
-	echo "debug copying: [${source}] -> [${destination}]"
+	echo "--------------------------------------------"
+	echo "copying: [${source}] -> [${destination}]"
 	lsblk
-	echo "-----------------------------"
+	echo "--------------------------------------------"
 
 	if [ ! -b "${destination}" ] ; then
 		echo "Error: [${destination}] does not exist"
@@ -138,22 +140,11 @@ update_boot_files () {
 	#update-initramfs -u -k $(uname -r)
 }
 
-fdisk_toggle_boot () {
-	# enable partition 2 & disable partition 1
-	fdisk ${destination} <<-__EOF__
-	a
-	2
-	a
-	1
-	w
-	__EOF__
-	flush_cache
-}
-
 format_partitions () {
 	mkfs.ext4 -qF ${destination}p1 -L reserved
-	mkfs.ext4 -qF ${destination}p2 -L rootfs
-	mkfs.ext4 -qF ${destination}p3 -L data
+	mkfs.ext4 -qF ${destination}p2 -L boot
+	mkfs.ext4 -qF ${destination}p3 -L rootfs
+	mkfs.ext4 -qF ${destination}p4 -L data
 	flush_cache
 }
 
@@ -168,47 +159,46 @@ partition_drive () {
 		umount ${DRIVE} >/dev/null 2>&1 || umount -l ${DRIVE} >/dev/null 2>&1 || write_failure
 	done
 
-	# erase bootloader
+	# erase partition filesystem information
 	flush_cache
-	dd if=/dev/zero of=${destination} bs=1M count=1
-	sync
-	dd if=${destination} of=/dev/null bs=1M count=1
-	sync
-	flush_cache
-
-	# erase root filesystem
-	flush_cache
-	dd if=/dev/zero of=${destination} bs=1M seek=127 count=8
-	sync
-	dd if=${destination} of=/dev/null bs=1M seek=127 count=8
+	echo "erase all data of EMMC"
+	dd if=/dev/zero of=${destination} bs=4K count=200 > /dev/null 2>&1  || true
+	dd if=/dev/zero of=${destination} bs=1M seek=4 count=1 > /dev/null 2>&1  || true
+	dd if=/dev/zero of=${destination} bs=1M seek=68 count=1 > /dev/null 2>&1 || true
+	dd if=/dev/zero of=${destination} bs=1M seek=132 count=1 > /dev/null 2>&1  || true
+	dd if=/dev/zero of=${destination} bs=1M seek=2180 count=1 > /dev/null 2>&1  || true
 	sync
 	flush_cache
 
-	# DOS MBR use sector 0
+	# GPT/EFI Partition
 	# 8192 sector: 8192*512B, 4MB for bootloader/environments
-	# p1: 128MB reserved formatted boot partition
-	# p2: 2GB, root filesystem, * boot active
-	# p3: another for user data
+	# p1: 64MB reserved partition
+	# p2: 64MB boot partition, * boot active
+	# p3: 2GB, root filesystem,
+	# p4: another for user data
 	#
 	# except the below configuration
 	# -------------------------------------------------------------
 	# Device         Boot   Start      End  Sectors  Size Id Type
-	# /dev/mmcblk1p1         8192   270335   262144  128M 83 Linux
-	# /dev/mmcblk1p2 *     270336  4464639  4194304    2G 83 Linux
+	# /dev/mmcblk1p1         8192   139263   131072   64M 83 Linux
+	# /dev/mmcblk1p2 *     139264   270335   131072   64M 83 Linux
+	# /dev/mmcblk1p3       270336  4464639  4194304    2G 83 Linux
 	# /dev/mmcblk1p3      4464640 15269887 10805248  5.2G 83 Linux
 	# -------------------------------------------------------------
 	# >>>--------------- for MBR ----------------------------------
 	#LC_ALL=C sfdisk --force "${destination}" <<-__EOF__
-	#	8192,	128M, ,
-	#	270336,2048M, ,*
+	#	8192,	64M, ,
+	#	139264, 64M, , *
+	#	270336,2048M, ,
 	#	4464640,,,-
 	#__EOF__
 	# <<<----------------------------------------------------------
 	# >>>--------------- for GPT/EFI ------------------------------
 	LC_ALL=C sgdisk --zap-all --clear "${destination}" > /dev/null 2>&1 || true
-	LC_ALL=C sgdisk -n 1:8192:+128MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}"
-	LC_ALL=C sgdisk -n 2::+2GiB -t 2:8300 -c 2:"rootfs" -A 2:set:2 -u 2:69DAD710-2CE4-4E3C-B16C-21A1DD49ABED3 "${destination}"
-	LC_ALL=C sgdisk -n 3:: -t 3:8300 -c 3:"data" -u 3:933AC7E1-2EB4-4F13-B844-0E14E2AEF9915 "${destination}"
+	LC_ALL=C sgdisk -n 1:8192:+64MiB -t 1:8300 -c 1:"reserved" -u 1:8DA63339-0007-60C0-C4366-083AC8230908 "${destination}" > /dev/null 2>&1 || true
+	LC_ALL=C sgdisk -n 2::+64MiB -t 2:8300 -c 2:"boot" -A 2:set:2 -u 2:BC13C2FF-59E6-4262-A352-B275FD6F7172 "${destination}" > /dev/null 2>&1 || true
+	LC_ALL=C sgdisk -n 3::+2GiB -t 3:8300 -c 3:"rootfs" -u 3:69DAD710-2CE4-4E3C-B16C-21A1DD49ABED3 "${destination}" > /dev/null 2>&1 || true
+	LC_ALL=C sgdisk -n 4:: -t 4:8300 -c 4:"data" -u 4:933AC7E1-2EB4-4F13-B844-0E14E2AEF9915 "${destination}" > /dev/null 2>&1 || true
 	# for boot flags, bootloader need this
 	# LC_ALL=C sgdisk -A 2:set:2 "${destination}"
 	# <<<----------------------------------------------------------
@@ -221,7 +211,8 @@ generation_fstab () {
 	echo "Generating: /etc/fstab"
 	echo "# /etc/fstab: static file system information." > /tmp/rootfs/etc/fstab
 	echo "#" >> /tmp/rootfs/etc/fstab
-	echo "#${root_uuid}		/			ext4		noatime,errors=remount-ro			0 1" >> /tmp/rootfs/etc/fstab
+	echo "# ${root_uuid}		/			ext4		noatime,errors=remount-ro			0 1" >> /tmp/rootfs/etc/fstab
+	echo "${boot_uuid}		/boot			ext4		noatime,errors=remount-ro			0 2" >> /tmp/rootfs/etc/fstab
 	echo "proc			/proc			proc		defaults					0 0" >> /tmp/rootfs/etc/fstab
 	echo "sysfs			/sys			sysfs		rw,nosuid,nodev,noexec,relatime			0 0" >> /tmp/rootfs/etc/fstab
 	echo "devpts			/dev/pts		devpts		rw,nosuid,noexec,relatime,mode=0620,gid=5	0 0" >> /tmp/rootfs/etc/fstab
@@ -239,11 +230,26 @@ copy_boot () {
 }
 
 copy_rootfs () {
+	local src_boot=${source}p2
+	local dst_reserved=${destination}p1
+	local dst_boot=${destination}p2
+	local dst_root=${destination}p3
+
 	mkdir -p /tmp/rootfs/ || true
-	mount ${destination}p2 /tmp/rootfs/ -o async,noatime
+	mount ${dst_root} /tmp/rootfs/ -o async,noatime
+
+	mkdir -p /tmp/boot || true
+	mount ${src_boot} /tmp/boot/ -o async,noatime
+
+	mkdir -p /tmp/rootfs/boot/ || true
+	mount ${dst_boot} /tmp/rootfs/boot -o async,noatime
+
+	mkdir -p /tmp/rootfs/reserved/ || true
+	mount  ${dst_reserved} /tmp/rootfs/reserved -o async,noatime
+
 
 	echo "rsync: / -> /tmp/rootfs/"
-	rsync -aAX /* /tmp/rootfs/ --exclude={/dev/*,/proc/*,/sys/*,/tmp/*,/run/*,/mnt/*,/media/*,/lost+found,/boot/*,/lib/modules/*} || write_failure
+	rsync -aAX /* /tmp/rootfs/ --exclude={/dev/*,/proc/*,/sys/*,/tmp/*,/run/*,/mnt/*,/media/*,/lost+found,/reserved/*,/boot/*,/lib/modules/*} || write_failure
 	flush_cache
 
 	#ssh keys will now get regenerated on the next bootup
@@ -263,23 +269,36 @@ copy_rootfs () {
 	rsync -aAX /lib/modules/$(uname -r)/* /tmp/rootfs/lib/modules/$(uname -r)/ || write_failure
 	flush_cache
 
-	echo "rsync: /boot/ -> /tmp/rootfs/boot/"
-	mkdir -p /tmp/rootfs/boot/ || true
-	rsync -aAIX  /boot/* /tmp/rootfs/boot/ --exclude=boot.scr || write_failure
+	echo "rsync: /tmp/boot/ -> /tmp/rootfs/boot/"
+	rsync -aAIX  /tmp/boot/* /tmp/rootfs/boot/ --exclude={boot.scr,/lost+found} || write_failure
 	flush_cache
 
+	unset boot_uuid
+	boot_uuid=$(/sbin/blkid -c /dev/null -s UUID -o value ${dst_boot})
 	unset root_uuid
-	root_uuid=$(/sbin/blkid -c /dev/null -s UUID -o value ${destination}p2)
-	if [ "${root_uuid}" ] ; then
+	root_uuid=$(/sbin/blkid -c /dev/null -s UUID -o value ${dst_root})
+	if [ "${boot_uuid}" ]; then
+		boot_uuid="UUID=${boot_uuid}"
+	else
+		boot_uuid="${dst_boot}"
+	fi
+	if [ "${root_uuid}" ]; then
 		root_uuid="UUID=${root_uuid}"
 	else
-		root_uuid="${destination}p2"
+		root_uuid="${dst_root}"
 	fi
 	generation_fstab
 
 	update_boot_script
 
+	echo "rsync: boot partition -> /tmp/rootfs/reserved/"
+	rsync -aAIX  /tmp/rootfs/boot/* /tmp/rootfs/reserved/ --exclude=lost+found/|| write_failure
 	flush_cache
+
+	flush_cache
+	umount /tmp/boot || umount -l /tmp/boot || write_failure
+	umount /tmp/rootfs/reserved || umount -l /tmp/rootfs/reserved || write_failure
+	umount /tmp/rootfs/boot || umount -l /tmp/rootfs/boot || write_failure
 	umount /tmp/rootfs/ || umount -l /tmp/rootfs/ || write_failure
 
 	#https://github.com/beagleboard/meta-beagleboard/blob/master/contrib/bone-flash-tool/emmc.sh#L158-L159
@@ -323,11 +342,10 @@ update_boot_script() {
 	# echo "setenv bootargs ${KERNEL_ARGS}" >> ${BOOT_CMD}
 	echo "run finduuid" >> ${BOOT_CMD}
 	echo "setenv bootargs console=\${console} \${optargs} root=PARTUUID=\${uuid} rw rootfstype=\${mmcrootfstype}" >> ${BOOT_CMD}
-	echo "setenv distro_bootpart 2" >> ${BOOT_CMD}
 	echo "load \${devtype} \${devnum}:\${distro_bootpart} \${fdt_addr_r}" \
-		"/usr/lib/linux-image-${KERNEL_VERSION}/\${fdtfile}" >> ${BOOT_CMD}
+		"/dtbs/\${fdtfile}" >> ${BOOT_CMD}
 	echo "load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r}" \
-		"/boot/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
+		"/${KERNEL_FILE}-${KERNEL_VERSION}" >> ${BOOT_CMD}
 
 	case "${NO_INITRD}" in
 	yes|1)
@@ -335,7 +353,7 @@ update_boot_script() {
 		;;
 	*)
 		echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
-			"\${ramdisk_addr_r} /boot/initrd.img-${KERNEL_VERSION}" \
+			"\${ramdisk_addr_r} /initrd.img-${KERNEL_VERSION}" \
 			>> ${BOOT_CMD}
 		INITRD_ADDR="\${ramdisk_addr_r}:\${filesize}"
 		;;
@@ -348,9 +366,9 @@ update_boot_script() {
 		echo "setexpr overlay_addr_r \${fdt_addr_r} + 0x100000" >> ${BOOT_CMD}
 		for OVERLAY in ${OVERLAYS}; do
 			if ! echo $OVERLAY | grep -q "^/"; then
-				OVERLAY_PATH=/usr/lib/linux-image-${KERNEL_VERSION}/
+				OVERLAY_PATH=/dtbs/overlay/
 			fi
-			echo "load \${devtype} \${devnum}:${ROOT_PARTITION}" \
+			echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
 				"\${overlay_addr_r} ${OVERLAY_PATH}${OVERLAY}" \
 				>> ${BOOT_CMD}
 			echo "fdt apply \${overlay_addr_r}" >> ${BOOT_CMD}

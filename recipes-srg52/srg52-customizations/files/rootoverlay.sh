@@ -89,7 +89,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # mount data partition
-mount -n -t ext4 /dev/mmcblk1p3 ${OVER_BLK}
+mount -n -t ext4 /dev/mmcblk1p4 ${OVER_BLK}
 if [ $? -ne 0 ]; then
 	log_failure_msg "rootOverlay ERROR 6: mount data partition"
 	exit 0
