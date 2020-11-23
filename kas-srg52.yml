@@ -42,10 +42,33 @@ local_conf_header:
     CONF_VERSION = "1"
   cross: |
     ISAR_CROSS_COMPILE = "1"
+  groups_settings: |
+      GROUPS += "aaeon adm tty sudo dialout plugdev"
+      GROUP_adm[gid] = "4"
+      GROUP_adm[flags] = "system"
+      GROUP_tty[gid] = "5"
+      GROUP_tty[flags] = "system"
+      GROUP_dialout[gid] = "20"
+      GROUP_dialout[flags] = "system"
+      GROUP_sudo[gid] = "27"
+      GROUP_sudo[flag] = "system"
+      GROUP_plugdev[gid] = "46"
+      GROUP_plugdev[flags] = "system"
+      GROUP_aaeon[gid] = "1000"
   root_password: |
     USERS += "root"
     # 'aaeon'
     USER_root[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
+  aaeon_user: |
+    USERS += "aaeon"
+    USER_aaeon[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
+    USER_aaeon[gid] = "1000"
+    USER_aaeon[uid] = "1000"
+    USER_aaeon[flags] = "create-home"
+    USER_aaeon[home] = "/home/aaeon"
+    USER_aaeon[shell] = "/bin/bash"
+    USER_aaeon[groups] = " aaeon adm tty sudo dialout plugdev "
+
   preinstall_package: |
     IMAGE_PREINSTALL += "nano wpasupplicant network-manager modemmanager dnsmasq"
     IMAGE_PREINSTALL += "python3 python3-pip"
