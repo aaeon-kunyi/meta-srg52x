@@ -15,7 +15,6 @@ DESCRIPTION = "SRG-3352C Debian Buster image"
 
 SRC_URI = " \
 	file://postinst			\
-	file://fw_env.config		\
 	file://99-silent-printk.conf	\
 	file://usbgadget.conf		\
 	file://usbgadget.opt		\
@@ -43,12 +42,8 @@ do_install() {
 	install -v -d ${D}/etc/systemd/system/getty.target.wants
 	( cd ${D}/etc/systemd/system/getty.target.wants && ln -s /lib/systemd/system/serial-getty@.service serial-getty@ttyGS0.service )
 
-
 	install -v -d ${D}/etc/NetworkManager/system-connections/
 	install -v -m 600 ${WORKDIR}/Modem.nmconnection	${D}/etc/NetworkManager/system-connections/Modem.nmconnection
-
-	install -v -d ${D}/etc/
-	install -v -m 644 ${WORKDIR}/fw_env.config ${D}/etc/
 
 	# add hooks for initramfs
 	# HOOKS=${D}/etc/initramfs-tools/hooks

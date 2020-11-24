@@ -15,6 +15,7 @@ DESCRIPTION = "SRG-335x customizations"
 
 SRC_URI = " \
 	file://postinst			\
+	file://fw_env.config		\
 	file://initramfs.fsck.hook	\
 	file://rootoverlay.sh		\
 	file://scripts/tools		\
@@ -30,6 +31,10 @@ do_install() {
 	install -v -d ${D}/opt/scripts/tools
 	install -m 0755 -d ${D}/opt/scripts
 	install -v -m 755 ${WORKDIR}/scripts/tools/srg3352c_emmc_flasher.sh	${D}/opt/scripts/tools
+
+	# for access environment variables of u-boot
+	install -v -d ${D}/etc/
+	install -v -m 644 ${WORKDIR}/fw_env.config ${D}/etc/
 
 	# add scripts for initramfs
 	SCRIPTS=${D}/etc/initramfs-tools/scripts/init-bottom
