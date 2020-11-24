@@ -9,6 +9,16 @@
 # SPDX-License-Identifier: MIT
 #
 
+# change default PATH enviroment variable for user
+# replace PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games" to
+#		  PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+sed -i "s/PATH=\"\/usr\/local\/bin:\/usr\/bin:\/bin:\/usr\/local\/games:\/usr\/games\"/PATH=\"\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/usr\/games:\/usr\/local\/games\"/g" /etc/profile
+
+# override origin issue/motd files
+# then to remove files
+cp -rf /opt/srg52/etc/issue/* /etc/
+rm -rf /opt/srg52/etc/
+
 # disable hostapd, default not enable
 systemctl disable hostapd.service || true
 

@@ -10,35 +10,6 @@
 # SPDX-License-Identifier: MIT
 #
 
-
-# for local login
-echo "   ____   ____    ___   ___   ____  " > /etc/issue
-echo "  /    | /    |  /  _] /   \ |    \ " >> /etc/issue
-echo " |  o  ||  o  | /  [_ |     ||  _  |" >> /etc/issue
-echo " |     ||     ||    _]|  O  ||  |  |" >> /etc/issue
-echo " |  _  ||  _  ||   [_ |     ||  |  |" >> /etc/issue
-echo " |  |  ||  |  ||     ||     ||  |  |" >> /etc/issue
-echo " |__|__||__|__||_____| \___/ |__|__|" >> /etc/issue
-echo "" >> /etc/issue
-echo "   2020 AAEON Technology Inc." >> /etc/issue
-echo "" >> /etc/issue
-echo "SRG-3352C IoT Gateway (login: root/aaeon)" >> /etc/issue
-echo "" >> /etc/issue
-
-# for remote login
-echo "   ____   ____    ___   ___   ____  " > /etc/issue.net
-echo "  /    | /    |  /  _] /   \ |    \ " >> /etc/issue.net
-echo " |  o  ||  o  | /  [_ |     ||  _  |" >> /etc/issue.net
-echo " |     ||     ||    _]|  O  ||  |  |" >> /etc/issue.net
-echo " |  _  ||  _  ||   [_ |     ||  |  |" >> /etc/issue.net
-echo " |  |  ||  |  ||     ||     ||  |  |" >> /etc/issue.net
-echo " |__|__||__|__||_____| \___/ |__|__|" >> /etc/issue.net
-echo "" >> /etc/issue.net
-echo "   2020 AAEON Technology Inc." >> /etc/issue.net
-echo "" >> /etc/issue.net
-echo "SRG-3352C IoT Gateway (login: root/aaeon)" >> /etc/issue.net
-echo "" >> /etc/issue.net
-
 echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 HOSTNAME=SRG-3352C

@@ -16,6 +16,9 @@ DESCRIPTION = "SRG-335x customizations"
 SRC_URI = " \
 	file://postinst			\
 	file://fw_env.config		\
+	file://issue			\
+	file://issue.net		\
+	file://motd			\
 	file://initramfs.fsck.hook	\
 	file://rootoverlay.sh		\
 	file://scripts/tools		\
@@ -35,6 +38,12 @@ do_install() {
 	# for access environment variables of u-boot
 	install -v -d ${D}/etc/
 	install -v -m 644 ${WORKDIR}/fw_env.config ${D}/etc/
+
+	# for local & remote login issue
+	install -v -d ${D}/opt/srg52/etc/issue/
+	install -v -m 644 ${WORKDIR}/issue	${D}/opt/srg52/etc/issue/
+	install -v -m 644 ${WORKDIR}/issue.net	${D}/opt/srg52/etc/issue/
+	install -v -m 644 ${WORKDIR}/motd	${D}/opt/srg52/etc/issue/
 
 	# add scripts for initramfs
 	SCRIPTS=${D}/etc/initramfs-tools/scripts/init-bottom
