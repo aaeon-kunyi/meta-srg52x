@@ -58,7 +58,7 @@ local_conf_header:
   root_password: |
     USERS += "root"
     # 'aaeon'
-    USER_root[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
+    # USER_root[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
   aaeon_user: |
     USERS += "aaeon"
     USER_aaeon[password] = "$6$x/JYBdqHvCCs6EQM$blmDpS8NO7OkPyvy3NBmZLsOHI.7qE5V/IbpHsrhbagrbaPFsqFNYKSxGlPGNY9AZVtX8e2ZN4CmPMPpZCiYQ."
