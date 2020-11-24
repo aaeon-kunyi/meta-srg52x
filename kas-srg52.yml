@@ -30,6 +30,9 @@ repos:
       02-initramfs:
         path: isar-patches/v7-0001-meta-support-Generate-a-custom-initramfs.patch
         repo:  meta-srg52
+      03-os-image-release:
+        path: isar-patches/0001-patch-add-build-date-into-etc-os-release.patch
+        repo:  meta-srg52
 
 bblayers_conf_header:
   standard: |
@@ -107,3 +110,7 @@ local_conf_header:
 
   image_type: |
     IMAGE_TYPE = "wic-targz-img"
+
+  os_image_version: |
+    IMG_VARIANT_VERSION = "1.0-beta"
+

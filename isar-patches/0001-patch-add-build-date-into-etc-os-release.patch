@@ -1,0 +1,62 @@
+From 0db840004b72db0771a5f0f46d97f36019505319 Mon Sep 17 00:00:00 2001
+From: KunYi <kunyi.chen@gmail.com>
+Date: Tue, 24 Nov 2020 16:08:23 +0800
+Subject: [PATCH] patch:add build date into etc/os-release
+
+add more image information for build/release
+---
+ meta/classes/image-postproc-extension.bbclass | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/meta/classes/image-postproc-extension.bbclass b/meta/classes/image-postproc-extension.bbclass
+index 3f00c21..c337d91 100644
+--- a/meta/classes/image-postproc-extension.bbclass
++++ b/meta/classes/image-postproc-extension.bbclass
+@@ -5,11 +5,13 @@ update_etc_os_release() {
+     OS_RELEASE_BUILD_ID=""
+     OS_RELEASE_VARIANT=""
+     OS_RELEASE_VARIANT_VERSION=""
++    OS_RELEASE_BUILD_DATE=""
+     while true; do
+         case "$1" in
+         --build-id) OS_RELEASE_BUILD_ID=$2; shift ;;
+         --variant) OS_RELEASE_VARIANT=$2; shift ;;
+         --version) OS_RELEASE_VARIANT_VERSION=$2; shift ;;
++        --date) OS_RELEASE_BUILD_DATE=$2; shift ;;
+         -*) bbfatal "$0: invalid option specified: $1" ;;
+         *) break ;;
+         esac
+@@ -21,6 +23,10 @@ update_etc_os_release() {
+         echo "BUILD_ID=\"${OS_RELEASE_BUILD_ID}\"" | \
+             sudo tee -a '${IMAGE_ROOTFS}/etc/os-release'
+     fi
++    if [ -n "${OS_RELEASE_BUILD_DATE}" ]; then
++        echo "BUILD_DATE=\"${OS_RELEASE_BUILD_DATE}\"" | \
++            sudo tee -a '${IMAGE_ROOTFS}/etc/os-release'
++    fi
+     if [ -n "${OS_RELEASE_VARIANT}" ]; then
+         sudo sed -i '/^VARIANT=.*/d' '${IMAGE_ROOTFS}/etc/os-release'
+         echo "VARIANT=\"${OS_RELEASE_VARIANT}\"" | \
+@@ -28,7 +34,7 @@ update_etc_os_release() {
+     fi
+     if [ -n "${OS_RELEASE_VARIANT_VERSION}" ]; then
+         sudo sed -i '/^ISAR_IMAGE_VERSION=.*/d' '${IMAGE_ROOTFS}/etc/os-release'
+-        echo "VARIANT_VERSION=\"${PV}\"" | \
++        echo "VARIANT_VERSION=\"${PV}\"" | \
+             sudo tee -a '${IMAGE_ROOTFS}/etc/os-release'
+     fi
+ }
+@@ -49,8 +55,9 @@ ROOTFS_POSTPROCESS_COMMAND =+ "image_postprocess_mark"
+ 
+ image_postprocess_mark() {
+     BUILD_ID=$(get_build_id)
++    BUILD_DATE=$(date +'%Y/%m/%d')
+     update_etc_os_release \
+-        --build-id "${BUILD_ID}" --variant "${DESCRIPTION}" --version "${PV}"
++        --build-id "${BUILD_ID}" --variant "${DESCRIPTION}" --version "${PV}" --date "${BUILD_DATE}"
+ }
+ 
+ ROOTFS_POSTPROCESS_COMMAND =+ "image_postprocess_machine_id"
+-- 
+2.17.1
+

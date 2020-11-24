@@ -14,6 +14,15 @@ inherit image_uuid
 ISAR_RELEASE_CMD = "git -C ${LAYERDIR_srg52-buster} describe --tags --dirty --always --match 'v[0-9].[0-9]*'"
 DESCRIPTION = "SRG-3352x Debian Buster image"
 
+#
+# PV/PN for image VARIANT_VERSION
+#
+python() {
+    var_version = d.getVar('IMG_VARIANT_VERSION')
+    if var_version:
+        d.setVar('PV', var_version)
+}
+
 IMAGE_INSTALL += "customizations"
 
 # install srg52 customizations package
