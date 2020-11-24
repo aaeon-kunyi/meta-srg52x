@@ -1,0 +1,13 @@
+[connection]
+id=Ethernet0
+uuid=d2a83a52-315f-3ed3-b9f8-c7de6091feb5
+type=802-3-ethernet
+interface-name=eth0
+permissions=
+autoconnect=true
+
+[ipv4]
+dns-search=
+addresses=192.168.3.127/24
+method=auto
+

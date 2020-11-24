@@ -23,6 +23,9 @@ SRC_URI = " \
 	file://rootoverlay.sh		\
 	file://scripts/tools		\
 	file://automount/		\
+	file://Modem.nmconnection	\
+	file://Eth0.nmconnection	\
+	file://Eth1.nmconnection	\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -56,6 +59,12 @@ do_install() {
 	install -v -d ${HOOKS}
 	install -m 0755 -d ${HOOKS}
 	install -m 0740 ${WORKDIR}/initramfs.fsck.hook	${HOOKS}/fsck.hook
+
+	# install NetworkManager connection settings file
+	install -v -d ${D}/etc/NetworkManager/system-connections/
+	install -v -m 600 ${WORKDIR}/Modem.nmconnection	${D}/etc/NetworkManager/system-connections/Modem.nmconnection
+	install -v -m 600 ${WORKDIR}/Eth0.nmconnection	${D}/etc/NetworkManager/system-connections/Eth0.nmconnection
+	install -v -m 600 ${WORKDIR}/Eth1.nmconnection	${D}/etc/NetworkManager/system-connections/Eth1.nmconnection
 
 	# automount
 	# install -v -d ${D}/etc/udev/rules.d/

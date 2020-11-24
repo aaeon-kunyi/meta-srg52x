@@ -19,7 +19,6 @@ SRC_URI = " \
 	file://usbgadget.conf		\
 	file://usbgadget.opt		\
 	file://srg52.img		\
-	file://Modem.nmconnection	\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -41,9 +40,6 @@ do_install() {
 
 	install -v -d ${D}/etc/systemd/system/getty.target.wants
 	( cd ${D}/etc/systemd/system/getty.target.wants && ln -s /lib/systemd/system/serial-getty@.service serial-getty@ttyGS0.service )
-
-	install -v -d ${D}/etc/NetworkManager/system-connections/
-	install -v -m 600 ${WORKDIR}/Modem.nmconnection	${D}/etc/NetworkManager/system-connections/Modem.nmconnection
 
 	# add hooks for initramfs
 	# HOOKS=${D}/etc/initramfs-tools/hooks
