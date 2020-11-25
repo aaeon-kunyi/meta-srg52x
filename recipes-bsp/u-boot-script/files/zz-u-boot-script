@@ -1,3 +1,6 @@
-#!/bin/sh
+#!/bin/sh -e
+set -x
 
 update-u-boot-script
+
+exit 0
