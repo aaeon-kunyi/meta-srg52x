@@ -17,7 +17,7 @@ SRC_URI = " \
 	file://postinst			\
 	file://srg52-test.tgz		\
 	"
-DEBIAN_DEPENDS = " bash "
+DEBIAN_DEPENDS = " bash, hdparm, memtester, lshw "
 
 do_install() {
 	install -v -d ${D}/root/test
