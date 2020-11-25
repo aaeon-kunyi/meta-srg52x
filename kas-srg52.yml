@@ -84,10 +84,11 @@ local_conf_header:
     IMAGE_PREINSTALL += "nano wpasupplicant network-manager modemmanager dnsmasq"
     IMAGE_PREINSTALL += "python3 python3-pip"
     IMAGE_PREINSTALL += "lshw usbutils cpufrequtils gdisk ntfs-3g exfat-fuse exfat-utils"
-    IMAGE_PREINSTALL += "libiio-dev libiio-utils libiio0 python3-libiio"
+    # IMAGE_PREINSTALL += "libiio-dev libiio-utils libiio0 python3-libiio"
     # IMAGE_PREINSTALL += "firmware-linux firmware-linux-free firmware-linux-nonfree firmware-misc-nonfree"
     # IMAGE_PREINSTALL += "firmware-atheros firmware-brcm80211 firmware-ralink firmware-realtek"
-    IMAGE_PREINSTALL += "libmodbus-dev libmodbus5  libmosquitto-dev libmosquitto1"
+    # for libmodbus/mosquitto/libgpiod development
+    IMAGE_PREINSTALL += "libmodbus-dev libmodbus5  libmosquitto-dev libmosquitto1 libgpiod2 libgpiod-dev"
     # from cip-core security
     IMAGE_PREINSTALL += "openssl libssl1.1 \
                          fail2ban \
