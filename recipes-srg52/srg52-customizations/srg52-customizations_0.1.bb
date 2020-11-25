@@ -26,6 +26,7 @@ SRC_URI = " \
 	file://Modem.nmconnection	\
 	file://Eth0.nmconnection	\
 	file://Eth1.nmconnection	\
+	file://udev/rules.d		\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -80,6 +81,13 @@ do_install() {
 	install -v -d ${D}/usr/bin
 	install -m 755 ${WORKDIR}/automount/umount_dmenu	${D}/usr/bin/umount_dmenu
 	install -m 755 ${WORKDIR}/automount/media-automount	${D}/usr/bin/media-automount
+
+	# rules of udev
+	install -v -d ${D}/etc/udev/rules.d/
+	install -m 644 ${WORKDIR}/udev/rules.d/10-of-symlink.rules ${D}/etc/udev/rules.d/
+	install -m 644 ${WORKDIR}/udev/rules.d/80-gpio-noroot.rules ${D}/etc/udev/rules.d/
+	install -m 644 ${WORKDIR}/udev/rules.d/80-i2c-noroot.rules ${D}/etc/udev/rules.d/
+	install -m 644 ${WORKDIR}/udev/rules.d/88-leds-noroot.rules ${D}/etc/udev/rules.d/
 }
 
 addtask do_install after do_transform_template
