@@ -1,10 +1,10 @@
+#!/bin/sh -e
 # This package for TI Wl18xx bluetooth firmware
 #
 # Copyright (C) KunYi, 2020
 #
 # SPDX-License-Identifier: MIT
 
-#!/bin/sh
 set -x
 PREREQ=""
 
@@ -25,7 +25,7 @@ esac
 
 if [ -d /lib/firmware/ ] ; then
     unset check
-    check=$(ls /lib/firmware/ | grep TIInit_11.8.32.bts | head -n 1)
+    check=$(ls /lib/firmware/ti-connectivity/ | grep TIInit_11.8.32.bts | head -n 1)
     if [ ! "x${check}" = "x" ] ; then
         mkdir -p $DESTDIR/lib/firmware/ti-connectivity/
         if [ -f /lib/firmware/ti-connectivity/TIInit_11.8.32.bts ] ; then
