@@ -5,7 +5,7 @@ the repository for produce latest Debian buster OS image for `AAEON SRG-3352x Ga
 
 The build system used for this is `Isar <https://github.com/ilbers/isar>`_, an image generator that assembles Debian binaries or builds individual packages from scratch.
 
-Developement Host
+Development Host
 -----------------
 currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
 
@@ -68,6 +68,27 @@ currently use Ubuntu 18.04/20.04 -- x86_64(amd64).
 
 Known issues:
 -------------
+for developer:
+    currently sometime will got build failed result when re-gerneration image, like the below message
+    ::
+
+     E: Sub-process /usr/bin/dpkg returned an error code (1)
+     WARNING: exit code 100 from a shell command.
+     ERROR: Logfile of failure stored in: /work/build/tmp/work/srg52-buster-armhf/srg52-image-srg-3352c-wic-targz-img/1.0-beta-r01-r0/temp/log.do_rootfs_install.777
+     ERROR: Task (/repo/recipes-core/images/srg52-image.bb:do_rootfs_install) failed with exit code '1'
+     NOTE: Tasks Summary: Attempted 153 tasks of which 140 didn't need to be rerun and 1 failed.
+     Summary: 1 task failed:
+     /repo/recipes-core/images/srg52-image.bb:do_rootfs_install
+     Summary: There was 1 ERROR message shown, returning a non-zero exit code.
+     2020-11-26 05:38:10 - ERROR    - Command returned non-zero exit status 1
+
+    workaround method: to clean srg52-image, run the below commands
+    ::
+
+     ./shell_srg52.sh             # for entry shell of builder docker
+     bitbake -c clean srg52-image # run clean srg52-image
+     exit                         # quit the shell
+     ./build_srg52.sh             # now for re-gerneration image
 
 
 License:
