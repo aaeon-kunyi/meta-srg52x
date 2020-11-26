@@ -29,10 +29,10 @@ SRC_URI = " \
 	file://udev/rules.d		\
 	"
 
-DEPENDS += "sshd-regen-keys"
+DEPENDS += "sshd-regen-keys u-boot-script"
 
 DEBIAN_DEPENDS = " \
-	ifupdown, isc-dhcp-client, net-tools, iputils-ping, ssh, sshd-regen-keys, hostapd"
+	ifupdown, isc-dhcp-client, net-tools, iputils-ping, ssh, sshd-regen-keys, hostapd, initramfs-tools"
 
 do_install() {
 	install -v -d ${D}/opt/scripts/tools
