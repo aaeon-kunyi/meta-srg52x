@@ -31,7 +31,7 @@ if ! id | grep -q root; then
 fi
 
 unset root_drive
-root_drive=$(LC_ALL=C lsblk -l | grep "/" | awk '{print $1}')
+root_drive=$(LC_ALL=C lsblk -l | grep -v "/media/.*$" | grep "/" | awk '{print $1}')
 
 if [[ "x${root_drive}" = "x" ]] ; then
 	echo "Error: script halting, system unrecognized..."
