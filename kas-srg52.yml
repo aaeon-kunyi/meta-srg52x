@@ -46,7 +46,7 @@ local_conf_header:
   cross: |
     ISAR_CROSS_COMPILE = "1"
   groups_settings: |
-      GROUPS += "aaeon adm tty sudo dialout plugdev bluetooth netdev lp lpadmin"
+      GROUPS += "aaeon adm tty sudo dialout plugdev bluetooth netdev lp lpadmin gpio i2c spi"
       GROUP_adm[gid] = "4"
       GROUP_adm[flags] = "system"
       GROUP_tty[gid] = "5"
@@ -65,6 +65,12 @@ local_conf_header:
       GROUP_netdev[flags] = "system"
       GROUP_lpadmin[gid] = "116"
       GROUP_lpadmin[flags] = "system"
+      GROUP_gpio[gid] = "2001"
+      GROUP_gpio[flags] = "system"
+      GROUP_i2c[gid] = "2002"
+      GROUP_i2c[flags] = "system"
+      GROUP_spi[gid] = "2003"
+      GROUP_spi[flags] = "system"
       GROUP_aaeon[gid] = "1000"
   root_password: |
     USERS += "root"
@@ -78,7 +84,7 @@ local_conf_header:
     USER_aaeon[flags] = "create-home"
     USER_aaeon[home] = "/home/aaeon"
     USER_aaeon[shell] = "/bin/bash"
-    USER_aaeon[groups] = " aaeon adm tty sudo dialout plugdev bluetooth netdev lp lpadmin "
+    USER_aaeon[groups] = " aaeon adm tty sudo dialout plugdev bluetooth netdev lp lpadmin gpio i2c spi audio video"
 
   preinstall_package: |
     IMAGE_PREINSTALL += "nano wpasupplicant network-manager modemmanager dnsmasq"
