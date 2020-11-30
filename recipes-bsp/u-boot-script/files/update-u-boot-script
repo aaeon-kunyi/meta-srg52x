@@ -10,7 +10,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-set -x
+#set -x
+mount -o remount,rw /boot
 
 if [ -f /etc/default/u-boot-script ]; then
 	. /etc/default/u-boot-script
@@ -24,7 +25,14 @@ KERNEL_FILE="vmlinuz"
 BOOT="bootz"
 
 echo "${SCRIPT_PREPEND}" >> ${BOOT_CMD}
-
+# for saveenv, for factory init
+echo "if env exists initenv; then" \
+	"echo \"read env. varables from EMMC passed\";" \
+     "else" \
+	"echo \"will save env. variables into EMMC\";" \
+	"setenv initenv true;" \
+	"saveenv;"	\
+     "fi" >> ${BOOT_CMD}
 # KERNEL_ARGS definition in /etc/default/u-boot-script
 echo "setenv bootpart 0:\${distro_bootpart} " >> ${BOOT_CMD}
 echo "run finduuid" >> ${BOOT_CMD}
@@ -53,9 +61,9 @@ if [ -n "${OVERLAYS}" ]; then
 	echo "setexpr overlay_addr_r \${fdt_addr_r} + 0x100000" >> ${BOOT_CMD}
 	for OVERLAY in ${OVERLAYS}; do
 		if ! echo $OVERLAY | grep -q "^/"; then
-			OVERLAY_PATH=/usr/lib/linux-image-${KERNEL_VERSION}/
+			OVERLAY_PATH=/dtbs/overlay/
 		fi
-		echo "load \${devtype} \${devnum}:${ROOT_PARTITION}" \
+		echo "load \${devtype} \${devnum}:\${distro_bootpart}" \
 			"\${overlay_addr_r} ${OVERLAY_PATH}${OVERLAY}" \
 			>> ${BOOT_CMD}
 		echo "fdt apply \${overlay_addr_r}" >> ${BOOT_CMD}
@@ -67,5 +75,7 @@ echo "${BOOT} \${kernel_addr_r} ${INITRD_ADDR} \${fdt_addr_r}" >> ${BOOT_CMD}
 mkimage -T script -A invalid -C none -d ${BOOT_CMD} /boot/boot.scr > /dev/null
 
 rm ${BOOT_CMD}
+sync && sync
+mount -o remount,ro /boot
 
 exit 0
