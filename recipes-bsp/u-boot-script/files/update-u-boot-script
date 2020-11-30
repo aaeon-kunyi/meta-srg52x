@@ -10,8 +10,9 @@
 # SPDX-License-Identifier: MIT
 #
 
-#set -x
-mount -o remount,rw /boot
+# set -x
+
+mount -o remount,rw /boot || true
 
 if [ -f /etc/default/u-boot-script ]; then
 	. /etc/default/u-boot-script
@@ -76,6 +77,6 @@ mkimage -T script -A invalid -C none -d ${BOOT_CMD} /boot/boot.scr > /dev/null
 
 rm ${BOOT_CMD}
 sync && sync
-mount -o remount,ro /boot
+mount -o remount,ro /boot || true
 
 exit 0
