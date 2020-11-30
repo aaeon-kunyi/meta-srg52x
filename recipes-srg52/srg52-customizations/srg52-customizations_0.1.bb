@@ -21,6 +21,7 @@ SRC_URI = " \
 	file://motd			\
 	file://initramfs.fsck.hook	\
 	file://rootoverlay.sh		\
+	file://scripts/			\
 	file://scripts/tools		\
 	file://automount/		\
 	file://Modem.nmconnection	\
@@ -38,6 +39,9 @@ do_install() {
 	install -v -d ${D}/opt/scripts/tools
 	install -m 0755 -d ${D}/opt/scripts
 	install -v -m 755 ${WORKDIR}/scripts/tools/srg3352c_emmc_flasher.sh	${D}/opt/scripts/tools
+	install -v -m 755 ${WORKDIR}/scripts/CleanExpansion	${D}/opt/scripts/CleanExpansion
+	install -v -m 755 ${WORKDIR}/scripts/EnableExpansionA	${D}/opt/scripts/EnableExpansionA
+
 
 	# for access environment variables of u-boot
 	install -v -d ${D}/etc/

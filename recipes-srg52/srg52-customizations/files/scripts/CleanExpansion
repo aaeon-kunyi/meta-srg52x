@@ -1,0 +1,9 @@
+#!/bin/sh -e
+
+if ! id | grep -q root; then
+	echo "must be run as root"
+	exit
+fi
+
+sed -i s/^OVERLAYS=.*/OVERLAYS=""/g /etc/default/u-boot-script
+update-u-boot-script
