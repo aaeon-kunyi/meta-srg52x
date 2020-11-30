@@ -95,6 +95,7 @@ local_conf_header:
     # IMAGE_PREINSTALL += "firmware-atheros firmware-brcm80211 firmware-ralink firmware-realtek"
     # for libmodbus/mosquitto/libgpiod development
     IMAGE_PREINSTALL += "libmodbus-dev libmodbus5  libmosquitto-dev libmosquitto1 libgpiod2 libgpiod-dev"
+    IMAGE_PREINSTALL += "i2c-tools"
     # from cip-core security
     IMAGE_PREINSTALL += "openssl libssl1.1 \
                          fail2ban \
