@@ -235,7 +235,7 @@ generation_fstab () {
 	echo "# /etc/fstab: static file system information." > /tmp/rootfs/etc/fstab
 	echo "#" >> /tmp/rootfs/etc/fstab
 	echo "# ${root_uuid}		/			ext4		noatime,errors=remount-ro			0 1" >> /tmp/rootfs/etc/fstab
-	echo "${boot_uuid}		/boot			ext4		noatime,errors=remount-ro			0 2" >> /tmp/rootfs/etc/fstab
+	echo "${boot_uuid}		/boot			ext4		ro,noatime,errors=remount-ro			0 2" >> /tmp/rootfs/etc/fstab
 	echo "proc			/proc			proc		defaults					0 0" >> /tmp/rootfs/etc/fstab
 	echo "sysfs			/sys			sysfs		rw,nosuid,nodev,noexec,relatime			0 0" >> /tmp/rootfs/etc/fstab
 	echo "devpts			/dev/pts		devpts		rw,nosuid,noexec,relatime,mode=0620,gid=5	0 0" >> /tmp/rootfs/etc/fstab
