@@ -104,7 +104,7 @@ float readVoltage(int channel)
 	else
 	{
 		analogVal = readBuf[0] << 8 | readBuf[1];
-		voltage = (float)(analogVal*4.096f/32767.0f) * attenuation;
+		voltage = (float)((analogVal*4.096f/32767.0f) * attenuation);
 	}
 
 	return voltage;
