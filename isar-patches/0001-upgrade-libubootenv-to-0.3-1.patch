@@ -1,0 +1,97 @@
+From aa922b4bdcb331d75e8029ea3d8817e4b9b7be8f Mon Sep 17 00:00:00 2001
+From: KunYi <kunyi.chen@gmail.com>
+Date: Mon, 7 Dec 2020 17:07:48 +0800
+Subject: [PATCH] upgrade libubootenv to 0.3-1
+
+---
+ .../0002-Add-support-GNUInstallDirs.patch     | 48 -------------------
+ ...{libubootenv_0.2.bb => libubootenv_0.3.bb} | 11 +----
+ 2 files changed, 2 insertions(+), 57 deletions(-)
+ delete mode 100644 meta/recipes-bsp/libubootenv/files/0002-Add-support-GNUInstallDirs.patch
+ rename meta/recipes-bsp/libubootenv/{libubootenv_0.2.bb => libubootenv_0.3.bb} (71%)
+
+diff --git a/meta/recipes-bsp/libubootenv/files/0002-Add-support-GNUInstallDirs.patch b/meta/recipes-bsp/libubootenv/files/0002-Add-support-GNUInstallDirs.patch
+deleted file mode 100644
+index f8c3038..0000000
+--- a/meta/recipes-bsp/libubootenv/files/0002-Add-support-GNUInstallDirs.patch
++++ /dev/null
+@@ -1,48 +0,0 @@
+-From b17d194bd8285a19382a902a0bec9e5e042df064 Mon Sep 17 00:00:00 2001
+-From: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+-Date: Tue, 16 Apr 2019 08:52:01 +0900
+-Subject: [PATCH 2/4] Add support GNUInstallDirs
+-
+-This adds the functionality of the module "GNUInstallDirs" to make the
+-installation compatible with GNU.
+-
+-https://cmake.org/cmake/help/v3.14/module/GNUInstallDirs.html
+-
+-Signed-off-by: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+----
+- CMakeLists.txt     | 2 ++
+- src/CMakeLists.txt | 8 ++++----
+- 2 files changed, 6 insertions(+), 4 deletions(-)
+-
+-diff --git a/CMakeLists.txt b/CMakeLists.txt
+-index 104969e..57477fc 100644
+---- a/CMakeLists.txt
+-+++ b/CMakeLists.txt
+-@@ -10,6 +10,8 @@ add_definitions(-DVERSION="${VERSION}")
+- 
+- set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+- 
+-+include("GNUInstallDirs")
+-+
+- #set(CMAKE_C_FLAGS_DEBUG "-g")
+- include_directories ("${PROJECT_SOURCE_DIR}/src")
+- add_subdirectory (src)
+-diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+-index ea5979c..d97f221 100644
+---- a/src/CMakeLists.txt
+-+++ b/src/CMakeLists.txt
+-@@ -19,7 +19,7 @@ add_executable(fw_setenv fw_setenv.c)
+- target_link_libraries(fw_printenv ubootenv z)
+- target_link_libraries(fw_setenv ubootenv z)
+- 
+--install (TARGETS ubootenv DESTINATION lib)
+--install (FILES libuboot.h DESTINATION include)
+--install (TARGETS fw_printenv DESTINATION bin)
+--install (TARGETS fw_setenv DESTINATION bin)
+-+install (TARGETS ubootenv DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+-+install (FILES libuboot.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+-+install (TARGETS fw_printenv DESTINATION "${CMAKE_INSTALL_BINDIR}")
+-+install (TARGETS fw_setenv DESTINATION "${CMAKE_INSTALL_BINDIR}")
+--- 
+-2.20.1
+-
+diff --git a/meta/recipes-bsp/libubootenv/libubootenv_0.2.bb b/meta/recipes-bsp/libubootenv/libubootenv_0.3.bb
+similarity index 71%
+rename from meta/recipes-bsp/libubootenv/libubootenv_0.2.bb
+rename to meta/recipes-bsp/libubootenv/libubootenv_0.3.bb
+index 8eea584..e8f3f2a 100644
+--- a/meta/recipes-bsp/libubootenv/libubootenv_0.2.bb
++++ b/meta/recipes-bsp/libubootenv/libubootenv_0.3.bb
+@@ -15,18 +15,11 @@ PROVIDES = "libubootenv-tool libubootenv-dev libubootenv-doc libubootenv0.1"
+ inherit dpkg-gbp
+ 
+ SRC_URI = "git://salsa.debian.org/debian/libubootenv.git;protocol=https \
+-           file://0002-Add-support-GNUInstallDirs.patch;apply=no "
+-SRCREV = "2c7cb6d941d906dcc1d2e447cc17e418485dff12"
++	"
++SRCREV = "918da2525ce711700633ad69ea9b7e569b7abdbc"
+ 
+ S = "${WORKDIR}/git"
+ 
+-do_prepare_build() {
+-	cd ${S}
+-	export QUILT_PATCHES=debian/patches
+-	quilt import -f ${WORKDIR}/*.patch
+-	quilt push -a
+-}
+-
+ dpkg_runbuild_prepend() {
+ 	export DEB_BUILD_OPTIONS="nocheck"
+ }
+-- 
+2.17.1
+

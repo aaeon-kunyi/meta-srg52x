@@ -27,10 +27,9 @@ import glob
 
 from wic import WicError
 from wic.engine import get_custom_config
-from wic.utils import runner
 from wic.pluginbase import SourcePlugin
 from wic.plugins.source.rootfs import RootfsPlugin
-from wic.utils.misc import (exec_cmd, exec_native_cmd,
+from wic.misc import (exec_cmd, exec_native_cmd,
                             get_bitbake_var, BOOTDD_EXTRA_SPACE)
 from wic import WicError
 
