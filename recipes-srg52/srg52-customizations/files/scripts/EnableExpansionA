@@ -5,5 +5,5 @@ if ! id | grep -q root; then
 	exit
 fi
 
-sed -i s/^OVERLAYS=.*/OVERLAYS="srg52-extension-a.dtbo"/g /etc/default/u-boot-script
+sed -i s/^OVERLAYS=.*/OVERLAYS=\"srg52-extension-a.dtbo\"/g /etc/default/u-boot-script
 update-u-boot-script
