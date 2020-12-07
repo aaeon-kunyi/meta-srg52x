@@ -12,4 +12,4 @@
 # SPDX-License-Identifier: MIT
 #
 
-./kas-docker --isar build kas-srg52.yml:kas/board/srg-3352c.yml:srg52-expansion-a.yml
+./kas-container --isar build kas-srg52.yml:kas/board/srg-3352c.yml:srg52-expansion-a.yml
