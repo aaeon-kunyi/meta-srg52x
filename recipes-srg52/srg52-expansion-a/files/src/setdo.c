@@ -74,6 +74,19 @@ static void setgpio_output_mode(int i)
 	writeFile(path, data, strlen(data));
 }
 
+static void setgpio_output_model_initvalue(int i, int v)
+{
+	char path[PATH_MAX];
+	char data[16] = { 0 };
+
+	strncpy(data, "low", sizeof(data));
+	if (v > 0)
+		strncpy(data, "high", sizeof(data));
+
+	snprintf(path, sizeof(path), "%s/gpio%d/direction", sysfs_gpio, i);
+	writeFile(path, data, strlen(data));
+}
+
 static void setgpio_output_value(int i, int value)
 {
 	char path[PATH_MAX];
@@ -141,10 +154,8 @@ int main(int argc, char **argv)
 		usleep(500*1000);
 	}
 	ret = 0;
-	setgpio_output_mode(pinnums[i]);
+	setgpio_output_model_initvalue(pinnums[i], s);
 	/* need waiting some time for sysfs operation */
-	usleep(500*1000);
-	setgpio_output_value(pinnums[i], s);
 	return ret;
 }
 
