@@ -15,6 +15,15 @@
 #		  PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 sed -i "s/PATH=\"\/usr\/local\/bin:\/usr\/bin:\/bin:\/usr\/local\/games:\/usr\/games\"/PATH=\"\/usr\/local\/sbin:\/usr\/local\/bin:\/usr\/sbin:\/usr\/bin:\/sbin:\/bin:\/usr\/games:\/usr\/local\/games\"/g" /etc/profile
 
+# patch PIDFILE of fail2ban
+if [ -e /lib/systemd/system/fail2ban.service ]; then
+sed -i "s/PIDFile=\/var\/run\/fail2ban\/fail2ban.pid/PIDFile=\/run\/fail2ban\/fail2ban.pid/g" /lib/systemd/system/fail2ban.service
+fi
+# patch PIDFILE of auditd
+if [ -e /lib/systemd/system/auditd.service ]; then
+sed -i "s/PIDFile=\/var\/run\/auditd.pid/PIDFile=\/run\/auditd.pid/g" /lib/systemd/system/auditd.service
+fi
+
 # override origin issue/motd files
 # then to remove files
 cp -rf /opt/srg52/etc/issue/* /etc/
