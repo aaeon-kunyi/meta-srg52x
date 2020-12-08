@@ -28,6 +28,7 @@ SRC_URI = " \
 	file://Eth0.nmconnection	\
 	file://Eth1.nmconnection	\
 	file://udev/rules.d		\
+	file://conf.d/			\
 	"
 
 DEPENDS += "sshd-regen-keys u-boot-script"
@@ -89,9 +90,14 @@ do_install() {
 	# rules of udev
 	install -v -d ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/10-of-symlink.rules ${D}/etc/udev/rules.d/
+	install -m 644 ${WORKDIR}/udev/rules.d/70-expansion-b.rules ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/80-gpio-noroot.rules ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/80-i2c-noroot.rules ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/88-leds-noroot.rules ${D}/etc/udev/rules.d/
+
+	# srg52 configuration
+	install -v -d ${D}/etc/srg52/conf.d/
+	install -m 644 ${WORKDIR}/conf.d/uartmode.toml	${D}/etc/srg52/conf.d/
 }
 
 addtask do_install after do_transform_template

@@ -1,0 +1,8 @@
+
+[UART]
+portnums = 2
+devices = [ "/dev/ttyMU0", "/dev/ttyMU1" ]
+
+[MODE]
+port0Mode=1
+port1Mode=1

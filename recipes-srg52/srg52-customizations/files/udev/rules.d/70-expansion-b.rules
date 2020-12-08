@@ -1,0 +1,9 @@
+SUBSYSTEMS!="usb", GOTO="expb_end"
+ACTION!="add", GOTO="expb_end"
+ATTRS{idVendor}!="0403", GOTO="expb_end"
+ATTRS{idProduct}!="6001", GOTO="expb_end"
+
+KERNELS=="1-1.4.1", SYMLINK+="ttyMU0"
+KERNELS=="1-1.4.2", SYMLINK+="ttyMU1"
+
+LABEL="expb_end"

@@ -32,7 +32,7 @@ then
 fi
 
 unset root_drive
-root_drive=$(LC_ALL=C lsblk -l | grep "/" | awk '{print $1}')
+root_drive=$(LC_ALL=C lsblk -l | grep "/boot" | awk '{print $1}')
 if [[ $root_drive == "mmcblk0"* ]]
 then
 	root_drive=/dev/mmcblk0
