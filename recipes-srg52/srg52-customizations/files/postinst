@@ -9,6 +9,9 @@
 #
 # SPDX-License-Identifier: MIT
 #
+HOSTNAME=SRG-3352C
+echo "$HOSTNAME" > /etc/hostname
+echo "127.0.1.1 $HOSTNAME" >> /etc/hosts
 
 # change default PATH enviroment variable for user
 # replace PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games" to

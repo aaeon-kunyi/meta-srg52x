@@ -10,10 +10,6 @@
 # SPDX-License-Identifier: MIT
 #
 
-HOSTNAME=SRG-3352C
-echo "$HOSTNAME" > /etc/hostname
-echo "127.0.1.1 $HOSTNAME" >> /etc/hosts
-
 if [ -f /etc/securetty ] ; then
   echo ""  >> /etc/securetty
   echo "# for USB gadget serial console" >> /etc/securetty

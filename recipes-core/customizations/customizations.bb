@@ -18,7 +18,6 @@ SRC_URI = " \
 	file://99-silent-printk.conf	\
 	file://usbgadget.conf		\
 	file://usbgadget.opt		\
-	file://srg52.img		\
 	"
 
 DEPENDS += "sshd-regen-keys"
@@ -35,8 +34,8 @@ do_install() {
 	install -v -d ${D}/etc/sysctl.d
 	install -v -m 644 ${WORKDIR}/99-silent-printk.conf ${D}/etc/sysctl.d/
 
-	install -v -d ${D}/etc/srg52
-	install -v -m 644 ${WORKDIR}/srg52.img		${D}/etc/srg52/
+	# install -v -d ${D}/etc/srg52
+	# install -v -m 644 ${WORKDIR}/srg52.img		${D}/etc/srg52/
 
 	install -v -d ${D}/etc/systemd/system/getty.target.wants
 	( cd ${D}/etc/systemd/system/getty.target.wants && ln -s /lib/systemd/system/serial-getty@.service serial-getty@ttyGS0.service )
