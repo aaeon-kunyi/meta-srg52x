@@ -17,7 +17,7 @@ DESCRIPTION = "Linux Kernel for SRG-3352x"
 SECTION = "kernel"
 MAINTAINER = "KunYi <kunyi.chen@gmail.com>"
 
-KBUILD_DEPENDS += "lzop"
+KBUILD_DEPENDS += "lzop:native"
 
 SRCBRANCH = "srg52_dev"
 
@@ -25,10 +25,10 @@ SRCREV = "f4e286d96542b3c8d52efb85eea8b0b823a3e5e1"
 KERNEL_REV = "f4e286d96542b3c8d52efb85eea8b0b823a3e5e1"
 KERNEL_DEFCONFIG = "srg52_defconfig"
 
-SRC_URI += "https://github.com/KunYi/am33xx-kernel-dev/archive/${SRCBRANCH}.zip"
+SRC_URI += "https://github.com/aaeon-kunyi/am335x-kernel/archive/${SRCBRANCH}.zip"
 SRC_URI += "file://srg52_defconfig"
 
-SRC_URI[md5sum] = "a5f0be0b919ce4d7e05772991d2aa022"
-SRC_URI[sha256sum] = "60f5e0bfad3fdc23b5bcad7fa96671986df05cb11a04bf974efd5160d215a9bf"
+SRC_URI[md5sum] = "8e752d8defc9b1086ae211f43faa2737"
+SRC_URI[sha256sum] = "a365e13ef4ebcf2f60ef7c1a74b36bf31d557abe72764d5ec539721b2017da47"
 
-S = "${WORKDIR}/am33xx-kernel-dev-srg52_dev"
+S = "${WORKDIR}/am335x-kernel-srg52_dev"
