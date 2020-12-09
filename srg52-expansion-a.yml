@@ -1,0 +1,7 @@
+
+header:
+    version: 10
+
+local_conf_header:
+   expansion-a: |
+    IMAGE_INSTALL += "srg52-expansion-a"
