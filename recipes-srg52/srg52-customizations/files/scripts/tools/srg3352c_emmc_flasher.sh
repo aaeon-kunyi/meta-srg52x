@@ -323,6 +323,22 @@ copy_rootfs () {
 	umount /tmp/rootfs/boot || umount -l /tmp/rootfs/boot || write_failure
 	umount /tmp/rootfs/ || umount -l /tmp/rootfs/ || write_failure
 
+	# update EEPROM & U-Boot environment variables
+	unset ohost
+	ohost=$(hostname)
+	if [ x"${ohost}" == x"SRG-3352" ]; then
+		# setting environments
+		echo "set device model:SRG-3352"
+		srg52cfg -f -nSRG-3352
+		fw_setenv board_name SRG-3352
+	else
+		if [ x"${ohost}" == x"SRG-3352C" ]; then
+			echo "set device model:SRG-3352C"
+			srg52cfg -f -nSRG-3352C
+			fw_setenv board_name SRG-3352C
+		fi
+	fi
+
 	#https://github.com/beagleboard/meta-beagleboard/blob/master/contrib/bone-flash-tool/emmc.sh#L158-L159
 	# force writeback of eMMC buffers
 	dd if=${destination} of=/dev/null count=100000
