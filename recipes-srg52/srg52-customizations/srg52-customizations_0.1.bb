@@ -40,6 +40,7 @@ do_install() {
 	install -v -d ${D}/opt/scripts/tools
 	install -m 0755 -d ${D}/opt/scripts
 	install -v -m 755 ${WORKDIR}/scripts/tools/srg3352c_emmc_flasher.sh	${D}/opt/scripts/tools
+	install -v -m 755 ${WORKDIR}/scripts/tools/to3352.sh	${D}/opt/scripts/tools
 	install -v -m 755 ${WORKDIR}/scripts/CleanExpansion	${D}/opt/scripts/CleanExpansion
 	install -v -m 755 ${WORKDIR}/scripts/EnableExpansionA	${D}/opt/scripts/EnableExpansionA
 
