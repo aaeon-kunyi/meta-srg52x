@@ -1,0 +1,10 @@
+[Unit]
+Description=SRG-3352x uartmode services
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/uartmode -i
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+if ! id | grep -q root; then
+	echo "must be run as root"
+	exit
+fi
+
+systemctl unmask uartmode.service
+systemctl enable uartmode.service
+systemctl start uartmode.service
+

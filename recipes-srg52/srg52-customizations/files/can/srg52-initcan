@@ -1,0 +1,52 @@
+#!/bin/bash -e
+# Copyright (c) LYD/AAEON, 2020
+#
+# canbus initial helper
+#
+# Authors:
+#  KunYi <kunyi.chen@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+#
+
+usage() {
+	echo -e "$0 port bitrate"
+	echo -e ""
+	echo -e "example:"
+	echo -e "   $0 can0 250000  # init can0 to bitrate 250Kbps"
+	echo -e ""
+}
+
+settings() {
+	local port=$1
+	local bitrate=$2
+
+	ifconfig $port down
+	ip link set $port type can restart-ms 100
+	ip link set $port type can bitrate $bitrate sample-point 0.875
+	ip link set $port type can berr-reporting on
+	ifconfig $port txqueuelen 1000
+	local detail_tc=$(tc -d qdisc | grep $port)
+	if [ "x$detail_tc" == "x" ]; then
+		tc qdisc add dev $port root handle 1: pfifo
+	fi
+	ifconfig $port up
+}
+
+if ! id | grep -q root; then
+	echo -e "must be run as root"
+	exit 1
+fi
+
+if [ "x$1" == "x" ] || [ "x$2" == "x" ]  ; then
+	usage
+	exit 2
+fi
+
+if [ ! "x$1" == "xcan0" ] && [ ! "x$1" == "xcan1" ] ; then
+	echo -e "only support can[N], N must in 0..1"
+	usage
+	exit 3
+fi
+
+settings $1 $2

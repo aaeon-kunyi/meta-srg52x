@@ -58,4 +58,7 @@ if [ -f /etc/NetworkManager/system-connections/Eth1.nmconnection ]; then
   chmod 600 /etc/NetworkManager/system-connections/Eth1.nmconnection
 fi
 
+if [ -f /lib/systemd/system/uartmode.service ]; then
+	systemctl mask uartmode.service || true
+fi
 update-initramfs -u

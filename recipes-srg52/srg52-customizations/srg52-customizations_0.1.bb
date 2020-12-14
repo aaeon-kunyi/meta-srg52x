@@ -29,6 +29,8 @@ SRC_URI = " \
 	file://Eth1.nmconnection	\
 	file://udev/rules.d		\
 	file://conf.d/			\
+	file://can			\
+	file://services			\
 	"
 
 DEPENDS += "sshd-regen-keys u-boot-script"
@@ -43,7 +45,12 @@ do_install() {
 	install -v -m 755 ${WORKDIR}/scripts/tools/to3352.sh	${D}/opt/scripts/tools
 	install -v -m 755 ${WORKDIR}/scripts/CleanExpansion	${D}/opt/scripts/CleanExpansion
 	install -v -m 755 ${WORKDIR}/scripts/EnableExpansionA	${D}/opt/scripts/EnableExpansionA
+	install -v -m 755 ${WORKDIR}/scripts/EnableExpansionB	${D}/opt/scripts/EnableExpansionB
 
+
+	# for can bus init
+	install -v -d ${D}/usr/sbin
+	install -m 755 ${WORKDIR}/can/srg52-initcan ${D}/usr/sbin
 
 	# for access environment variables of u-boot
 	install -v -d ${D}/etc/
@@ -87,6 +94,9 @@ do_install() {
 	install -v -d ${D}/usr/bin
 	install -m 755 ${WORKDIR}/automount/umount_dmenu	${D}/usr/bin/umount_dmenu
 	install -m 755 ${WORKDIR}/automount/media-automount	${D}/usr/bin/media-automount
+
+	# install uartmode.service
+	install -m 644 ${WORKDIR}/services/uartmode.service ${D}/lib/systemd/system/
 
 	# rules of udev
 	install -v -d ${D}/etc/udev/rules.d/
