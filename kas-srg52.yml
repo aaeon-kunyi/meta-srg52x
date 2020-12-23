@@ -88,7 +88,7 @@ local_conf_header:
     USER_aaeon[groups] = " aaeon adm tty sudo dialout plugdev bluetooth netdev lp lpadmin gpio i2c spi audio video"
 
   preinstall_package: |
-    IMAGE_PREINSTALL += "nano wpasupplicant network-manager modemmanager dnsmasq"
+    IMAGE_PREINSTALL += "apt apt-utils nano wpasupplicant network-manager modemmanager dnsmasq"
     IMAGE_PREINSTALL += "python3 python3-pip"
     IMAGE_PREINSTALL += "lshw usbutils cpufrequtils gdisk ntfs-3g exfat-fuse exfat-utils"
     # IMAGE_PREINSTALL += "libiio-dev libiio-utils libiio0 python3-libiio"
