@@ -8,8 +8,4 @@ fi
 sed -i s/^OVERLAYS=.*/OVERLAYS=\"\"/g /etc/default/u-boot-script
 update-u-boot-script
 
-systemctl stop uartmode.service || true
-systemctl disable uartmode.service || true
-systemctl mask uartmode.service || true
-
 echo "need reboot for disable expansion board"

@@ -5,10 +5,6 @@ if ! id | grep -q root; then
 	exit
 fi
 
-systemctl unmask uartmode.service
-systemctl enable uartmode.service
-systemctl start uartmode.service
-
 sed -i s/^OVERLAYS=.*/OVERLAYS=\"srg52-extension-b.dtbo\"/g /etc/default/u-boot-script
 update-u-boot-script
 

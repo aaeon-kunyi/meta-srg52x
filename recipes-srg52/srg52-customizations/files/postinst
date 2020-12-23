@@ -47,18 +47,19 @@ fi
 
 # workaround, due to install permission incorrect
 if [ -f /etc/NetworkManager/system-connections/Modem.nmconnection ]; then
-  chmod 600 /etc/NetworkManager/system-connections/Modem.nmconnection
+	chmod 600 /etc/NetworkManager/system-connections/Modem.nmconnection
 fi
 
 if [ -f /etc/NetworkManager/system-connections/Eth0.nmconnection ]; then
-  chmod 600 /etc/NetworkManager/system-connections/Eth0.nmconnection
+	chmod 600 /etc/NetworkManager/system-connections/Eth0.nmconnection
 fi
 
 if [ -f /etc/NetworkManager/system-connections/Eth1.nmconnection ]; then
-  chmod 600 /etc/NetworkManager/system-connections/Eth1.nmconnection
+	chmod 600 /etc/NetworkManager/system-connections/Eth1.nmconnection
 fi
 
 if [ -f /lib/systemd/system/uartmode.service ]; then
-	systemctl mask uartmode.service || true
+	systemctl unmask uartmode.service || true
+	systemctl enable uartmode.service || true
 fi
 update-initramfs -u

@@ -95,9 +95,6 @@ do_install() {
 	install -m 755 ${WORKDIR}/automount/umount_dmenu	${D}/usr/bin/umount_dmenu
 	install -m 755 ${WORKDIR}/automount/media-automount	${D}/usr/bin/media-automount
 
-	# install uartmode.service
-	install -m 644 ${WORKDIR}/services/uartmode.service ${D}/lib/systemd/system/
-
 	# rules of udev
 	install -v -d ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/10-of-symlink.rules ${D}/etc/udev/rules.d/
@@ -106,9 +103,12 @@ do_install() {
 	install -m 644 ${WORKDIR}/udev/rules.d/80-i2c-noroot.rules ${D}/etc/udev/rules.d/
 	install -m 644 ${WORKDIR}/udev/rules.d/88-leds-noroot.rules ${D}/etc/udev/rules.d/
 
-	# srg52 configuration
+	# uartmode
 	install -v -d ${D}/etc/srg52/conf.d/
+	install -v -d ${D}/lib/systemd/system/
 	install -m 644 ${WORKDIR}/conf.d/uartmode.toml	${D}/etc/srg52/conf.d/
+	install -m 755 ${WORKDIR}/services/inituartmode.sh	${D}/etc/srg52/
+	install -m 644 ${WORKDIR}/services/uartmode.service	${D}/lib/systemd/system/
 }
 
 addtask do_install after do_transform_template
