@@ -31,6 +31,8 @@ SRC_URI = " \
 	file://conf.d/			\
 	file://can			\
 	file://services			\
+	file://srg52-init.service	\
+	file://generic-startup.sh	\
 	"
 
 DEPENDS += "sshd-regen-keys u-boot-script"
@@ -109,6 +111,9 @@ do_install() {
 	install -m 644 ${WORKDIR}/conf.d/uartmode.toml	${D}/etc/srg52/conf.d/
 	install -m 755 ${WORKDIR}/services/inituartmode.sh	${D}/etc/srg52/
 	install -m 644 ${WORKDIR}/services/uartmode.service	${D}/lib/systemd/system/
+
+	install -m 644 ${WORKDIR}/srg52-init.service ${D}/lib/systemd/system
+	install -m 755 ${WORKDIR}/generic-startup.sh ${D}/etc/srg52
 }
 
 addtask do_install after do_transform_template

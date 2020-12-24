@@ -62,4 +62,10 @@ if [ -f /lib/systemd/system/uartmode.service ]; then
 	systemctl unmask uartmode.service || true
 	systemctl enable uartmode.service || true
 fi
+
+if [ -f /lib/systemd/system/srg52-init.service ]; then
+	systemctl unmask srg52-init.service || true
+	systemctl enable srg52-init.service || true
+fi
+
 update-initramfs -u

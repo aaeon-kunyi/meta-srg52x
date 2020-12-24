@@ -1,10 +1,10 @@
 [Unit]
-Description=SRG-3352x uartmode services
+Description=SRG-3352x Generic Board Startup
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/etc/srg52/inituartmode.sh
+ExecStart=/bin/sh /etc/srg52/generic-startup.sh
 RemainAfterExit=yes
 
 [Install]
