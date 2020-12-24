@@ -12,4 +12,4 @@
 # SPDX-License-Identifier: MIT
 #
 
-./kas-docker --isar clean 
+./kas-container --isar clean
