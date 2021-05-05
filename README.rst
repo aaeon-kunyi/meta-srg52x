@@ -1,3 +1,9 @@
+the repository is unoffical, only for reference
+===============================================
+
+if you want get offical support please contact Sales/PM of AAOEN
+and offical repository should be is `AAEONT IOT <https://github.com/AaeonIot/meta-srg52x>`_.
+
 meta-srg52x
 ===========
 
